@@ -1,6 +1,6 @@
 import unittest
 import pandas as pd
-from Rapvis.data_processing import normalize_articles, add_period_string
+from data_processing import normalize_articles, add_period_string
 
 class TestDataProcessing(unittest.TestCase):
     def test_normalize_articles(self):
