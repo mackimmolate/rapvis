@@ -135,8 +135,9 @@ class DemandModel:
         self.filter_to = end
 
     def set_article_filter(self, selection):
-        self.article_filter = selection
-        self.selected_articles = [] # Reset manual selection when filter changes
+        if self.article_filter != selection:
+            self.article_filter = selection
+            self.selected_articles = [] # Reset manual selection ONLY when filter changes
 
     def set_selected_articles(self, articles):
         self.selected_articles = articles

@@ -48,13 +48,14 @@ class DemandController:
         self.update_ui()
 
     def update_ui(self, preserve_selection=False):
-        # Update dropdowns based on loaded data
+        # Read from view to sync model state FIRST
+        self.model.set_time_scale(self.view.time_scale_var.get())
+
+        # Update dropdowns based on loaded data (using new scale)
         periods = self.model.get_period_list()
         self.view.update_dropdowns(periods)
 
         # Apply filters
-        # Read from view to sync model state
-        self.model.set_time_scale(self.view.time_scale_var.get())
         self.model.set_filter_range(self.view.from_var.get(), self.view.to_var.get())
 
         if not preserve_selection:
@@ -108,15 +109,11 @@ class DemandController:
         peak_period = peak_row["Week Start"].strftime("%Y-%m-%d")
         peak_val = peak_row["Demand"]
 
-        top_article = "N/A"
-        if not table_data.empty:
-            top_article = table_data.sort_values("Current", ascending=False).iloc[0]["Article"]
-
         text = f"Totalt behov: {total_demand:,.0f}"
         self.view.update_insights(text)
 
     def on_timescale_change(self):
-        self.update_ui()
+        self.update_ui(preserve_selection=True)
 
     def on_filter_change(self, event=None):
         self.update_ui()
@@ -128,6 +125,7 @@ class DemandController:
         self.view.article_var.set("Alla")
         self.view.from_var.set("")
         self.view.to_var.set("")
+        self.model.set_selected_articles([]) # Explicitly clear selection
         self.update_ui()
 
     def clear_history(self):
