@@ -3,6 +3,7 @@ import tkinter as tk
 from tkinter import ttk, filedialog, Menu, messagebox
 import ttkbootstrap as tb
 from ttkbootstrap.constants import *
+from tkinter import LEFT, RIGHT, TOP, BOTTOM, X, Y, BOTH, VERTICAL, HORIZONTAL
 from visualization import plot_demand
 import pandas as pd
 
