@@ -47,7 +47,7 @@ class DemandController:
 
         self.update_ui()
 
-    def update_ui(self):
+    def update_ui(self, preserve_selection=False):
         # Update dropdowns based on loaded data
         periods = self.model.get_period_list()
         self.view.update_dropdowns(periods)
@@ -56,7 +56,9 @@ class DemandController:
         # Read from view to sync model state
         self.model.set_time_scale(self.view.time_scale_var.get())
         self.model.set_filter_range(self.view.from_var.get(), self.view.to_var.get())
-        self.model.set_article_filter(self.view.article_var.get())
+
+        if not preserve_selection:
+            self.model.set_article_filter(self.view.article_var.get())
 
         # Get data
         data1, hist, agg1, agg_hist = self.model.get_filtered_data()
@@ -110,9 +112,7 @@ class DemandController:
         if not table_data.empty:
             top_article = table_data.sort_values("Current", ascending=False).iloc[0]["Article"]
 
-        text = (f"Totalt behov: {total_demand:,.0f} | "
-                f"Högsta efterfrågan: {peak_period} ({peak_val:,.0f}) | "
-                f"Största artikel: {top_article}")
+        text = f"Totalt behov: {total_demand:,.0f}"
         self.view.update_insights(text)
 
     def on_timescale_change(self):
@@ -153,7 +153,7 @@ class DemandController:
         if selected_items:
             articles = [self.view.tree.item(item, "values")[0] for item in selected_items]
             self.model.set_selected_articles(articles)
-            self.update_ui()
+            self.update_ui(preserve_selection=True)
 
     def on_graph_click(self, data1, data2):
         # When graph clicked, we get specific week data
