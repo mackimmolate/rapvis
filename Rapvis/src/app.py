@@ -6,15 +6,15 @@ import numpy as np
 from tkinter import ttk, filedialog, Menu, messagebox
 import sys
 
-from Rapvis.data_processing import (
+from data_processing import (
     load_data,
     aggregate_data,
     normalize_articles,
     add_period_string,
     get_period_strings,
 )
-from Rapvis.visualization import plot_demand
-from Rapvis.config import AUDI_NORMALIZED, VW_NORMALIZED
+from visualization import plot_demand
+from config import AUDI_NORMALIZED, VW_NORMALIZED
 
 class DemandAnalysisApp:
     def __init__(self, root):
