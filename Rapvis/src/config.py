@@ -1,0 +1,10 @@
+# config.py
+
+# Definerar normaliserade artikelgrupper för robust jämförelse
+AUDI_NORMALIZED = {
+    "8Y1853189D", "8Y1853190M", "8Y1853190P", "8Y2853189M", "8Y2853190D"
+}
+VW_NORMALIZED = {
+    "5H0867439B", "5H0867440B", "5H1858415D", "5H1858415F",
+    "5H1858416F", "5H1858416H", "5H2858415G", "5H2858416E"
+}
