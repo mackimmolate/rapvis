@@ -70,7 +70,7 @@ class DemandView(tb.Window):
         tb.Button(control_frame, text="PDF Rapport", command=self.controller.export_pdf, bootstyle="success").pack(side=RIGHT, padx=5)
 
         # Main Content
-        paned_window = tb.PanedWindow(self, orient=VERTICAL)
+        paned_window = tb.Panedwindow(self, orient=VERTICAL)
         paned_window.pack(expand=True, fill=BOTH, padx=10, pady=10)
 
         # Graph Area
