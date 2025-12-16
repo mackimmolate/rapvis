@@ -62,7 +62,7 @@ class DemandView(tb.Window):
 
         tb.Checkbutton(control_frame, text="Visa pratbubblor", variable=self.show_annotations_var, command=self.controller.on_annotation_toggle).pack(side=LEFT, padx=10)
 
-        tb.Button(control_frame, text="Reset filter", command=self.controller.reset_filters, bootstyle="warning-outline").pack(side=LEFT, padx=10)
+        tb.Button(control_frame, text="Visa alla", command=self.controller.reset_filters, bootstyle="warning-outline").pack(side=LEFT, padx=10)
         self.clear_history_btn = tb.Button(control_frame, text="Rensa historik", command=self.controller.clear_history, state="disabled", bootstyle="danger-outline")
         self.clear_history_btn.pack(side=LEFT, padx=5)
 
@@ -103,9 +103,14 @@ class DemandView(tb.Window):
         x_scroll = tb.Scrollbar(self.table_frame, orient="horizontal", command=self.tree.xview)
         self.tree.configure(yscrollcommand=y_scroll.set, xscrollcommand=x_scroll.set)
 
-        self.tree.pack(side=LEFT, fill=BOTH, expand=True)
-        y_scroll.pack(side=RIGHT, fill=Y)
-        x_scroll.pack(side=BOTTOM, fill=X)
+        # Use grid for precise layout to avoid "empty window" artifact
+        self.tree.grid(row=0, column=0, sticky=NSEW)
+        y_scroll.grid(row=0, column=1, sticky=NS)
+        x_scroll.grid(row=1, column=0, sticky=EW)
+
+        # Configure frame expansion
+        self.table_frame.grid_rowconfigure(0, weight=1)
+        self.table_frame.grid_columnconfigure(0, weight=1)
 
         # Context menu
         self.menu = Menu(self, tearoff=0)
