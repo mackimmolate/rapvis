@@ -20,6 +20,7 @@ DisableProgramGroupPage=yes
 PrivilegesRequired=lowest
 OutputDir=.
 OutputBaseFilename=Rapvis_Setup_v0.3
+SetupIconFile=src\ikon\icon.ico
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
