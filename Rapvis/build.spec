@@ -6,10 +6,7 @@ a = Analysis(
     ['src/app.py'],
     pathex=[],
     binaries=[],
-    datas=[
-        ('src/config.json', '.'),  # Include config if it exists/needed relative to exe
-        ('src/settings.json', '.'), # Include settings template if needed
-    ],
+    datas=[],
     hiddenimports=[
         'ttkbootstrap',
         'pandas',
