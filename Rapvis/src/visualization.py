@@ -54,7 +54,9 @@ def on_click(event, data1, data2, update_function, time_scale="weeks"):
     if event.inaxes is None or event.xdata is None:
         return
 
-    clicked_date = mdates.num2date(event.xdata).date()
+    # Round xdata to nearest day to avoid floating point undershoot/overshoot
+    # when clicking near the exact data point coordinates.
+    clicked_date = mdates.num2date(round(event.xdata)).date()
 
     # Determine the period start date based on the time scale
     target_date = None
