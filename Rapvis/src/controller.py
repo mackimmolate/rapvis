@@ -4,7 +4,6 @@ from tkinter import messagebox, filedialog
 from model import DemandModel
 from view import DemandView
 from config_manager import ConfigManager
-from report_generator import generate_pdf_report
 import tkinter as tk
 
 class DemandController:
@@ -158,20 +157,6 @@ class DemandController:
         # Update table to show only this week's breakdown
         table_df = self._prepare_table_data(data1, data2)
         self.view.update_table(table_df)
-
-    def export_pdf(self):
-        if not hasattr(self, 'current_table_data') or self.current_table_data.empty:
-            messagebox.showinfo("Export", "Ingen data att exportera.")
-            return
-
-        filename = filedialog.asksaveasfilename(defaultextension=".pdf", filetypes=[("PDF", "*.pdf")])
-        if filename:
-            # Pass the figure stored in view
-            success, msg = generate_pdf_report(getattr(self.view, 'current_figure', None), self.current_table_data, filename)
-            if success:
-                messagebox.showinfo("Export", f"Rapport sparad till:\n{filename}")
-            else:
-                messagebox.showerror("Exportfel", f"Kunde inte spara rapport:\n{msg}")
 
 if __name__ == "__main__":
     app = DemandController(None)
