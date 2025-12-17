@@ -2,4 +2,3 @@ pandas>=1.0.0
 numpy>=1.18.0
 matplotlib>=3.1.0
 ttkbootstrap>=1.10.0
-fpdf2>=2.7.0

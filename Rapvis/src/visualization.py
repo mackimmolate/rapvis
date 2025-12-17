@@ -8,6 +8,7 @@ import pandas as pd
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import datetime
 import numpy as np
+from datetime import timedelta
 
 
 def period_str_to_datetime(s, scale):
@@ -49,38 +50,37 @@ def convert_range_to_scale(start_dt, end_dt, scale):
 
 
 def on_click(event, data1, data2, update_function, time_scale="weeks"):
-    """Hanterar klickhändelser på grafen för att visa detaljerad data."""
+    """Hanterar klickhändelser på grafen för att visa detaljerad data för den klickade perioden."""
     if event.inaxes is None or event.xdata is None:
         return
 
     clicked_date = mdates.num2date(event.xdata).date()
 
-    # Hitta den närmaste datapunkten i BÅDA dataseten kombinerat.
-    # Detta ger oss den mest sannolika "sanna" datumet för klicket.
-    all_dates = []
-    if data1 is not None and not data1.empty:
-        all_dates.extend(data1["Week Start"].dt.date.unique())
-    if data2 is not None and not data2.empty:
-        all_dates.extend(data2["Week Start"].dt.date.unique())
+    # Determine the period start date based on the time scale
+    target_date = None
+    if time_scale == "weeks":
+        # Snap to Monday of the clicked week
+        target_date = clicked_date - timedelta(days=clicked_date.weekday())
+    elif time_scale == "months":
+        # Snap to 1st of the month
+        target_date = clicked_date.replace(day=1)
+    elif time_scale == "years":
+        # Snap to Jan 1st
+        target_date = clicked_date.replace(month=1, day=1)
 
-    if not all_dates:
+    if not target_date:
         return
 
-    # Ta bort dubbletter
-    unique_dates = sorted(list(set(all_dates)))
-
-    # Hitta det datum från vår lista som är närmast klicket
-    closest_date = min(unique_dates, key=lambda d: abs(d - clicked_date))
-
-    # Nu när vi har det "sanna" datumet, filtrera båda dataframes med det.
+    # Filter data for the EXACT target date
     selected_data1 = pd.DataFrame()
     if data1 is not None and not data1.empty:
-        selected_data1 = data1[data1["Week Start"].dt.date == closest_date]
+        selected_data1 = data1[data1["Week Start"].dt.date == target_date]
 
     selected_data2 = pd.DataFrame()
     if data2 is not None and not data2.empty:
-        selected_data2 = data2[data2["Week Start"].dt.date == closest_date]
+        selected_data2 = data2[data2["Week Start"].dt.date == target_date]
 
+    # If no data found for this period, update_function gets empty dfs (which results in 0s)
     update_function(selected_data1, selected_data2)
 
 

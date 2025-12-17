@@ -35,8 +35,8 @@ class DemandView(tb.Window):
         control_frame = tb.Frame(self, padding=10)
         control_frame.pack(fill=X)
 
-        tb.Button(control_frame, text="Ladda förfrågan", command=self.controller.load_file1, bootstyle="primary").pack(side=LEFT, padx=5)
-        self.load_history_btn = tb.Button(control_frame, text="Ladda historik", command=self.controller.load_history, bootstyle="secondary")
+        tb.Button(control_frame, text="Ladda förfrågan", command=self.controller.load_file1, bootstyle="success").pack(side=LEFT, padx=5)
+        self.load_history_btn = tb.Button(control_frame, text="Ladda historik", command=self.controller.load_history, bootstyle="primary")
         self.load_history_btn.pack(side=LEFT, padx=(0, 5))
 
         # Dynamic article values from config
@@ -65,9 +65,6 @@ class DemandView(tb.Window):
         tb.Button(control_frame, text="Visa alla", command=self.controller.reset_filters, bootstyle="warning-outline").pack(side=LEFT, padx=10)
         self.clear_history_btn = tb.Button(control_frame, text="Rensa historik", command=self.controller.clear_history, state="disabled", bootstyle="danger-outline")
         self.clear_history_btn.pack(side=LEFT, padx=5)
-
-        # Export Button (New Feature)
-        tb.Button(control_frame, text="PDF Rapport", command=self.controller.export_pdf, bootstyle="success").pack(side=RIGHT, padx=5)
 
         # Main Content
         paned_window = tb.Panedwindow(self, orient=VERTICAL)
