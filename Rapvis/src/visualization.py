@@ -98,6 +98,9 @@ def plot_demand(
     for widget in graph_frame.winfo_children():
         widget.destroy()
 
+    # Close any existing figures to prevent memory leaks and ghost processes
+    plt.close('all')
+
     fig, ax = plt.subplots(figsize=(10, 6), constrained_layout=True)
 
     plot_data1 = (

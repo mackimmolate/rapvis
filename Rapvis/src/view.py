@@ -176,6 +176,7 @@ class DemandView(tb.Window):
         self.config_manager.set_setting("show_annotations", self.show_annotations_var.get())
         self.config_manager.set_setting("time_scale", self.time_scale_var.get())
         self.config_manager.save_settings()
+        self.quit()
         self.destroy()
 
     def ask_file(self):
