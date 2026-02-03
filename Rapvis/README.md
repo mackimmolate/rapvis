@@ -1,7 +1,7 @@
 # Efterfrågeanalys (Rapvis)
 
-**Version:** 0.3
-**Author:** Rapvis
+**Version:** 0.3.0
+**Author:** MackImmolate
 
 Efterfrågeanalys is a Python-based desktop application designed for analyzing demand data for articles. It allows users to visualize current demand versus historical data, filter by time periods (weeks, months, years), and identify trends.
 
@@ -18,7 +18,7 @@ Efterfrågeanalys is a Python-based desktop application designed for analyzing d
 ## Installation
 
 ### For Users (Windows Installer)
-1.  Download `Rapvis_Setup_v0.3.exe`.
+1.  Download `Rapvis_Setup_v0.3.0.exe`.
 2.  Run the installer.
 3.  The application will be installed to your local AppData folder (`%LOCALAPPDATA%\Rapvis`).
 4.  Launch "Rapvis" from your Desktop or Start Menu.
@@ -28,7 +28,7 @@ Efterfrågeanalys is a Python-based desktop application designed for analyzing d
 1.  **Clone the repository:**
     ```bash
     git clone https://github.com/your-repo/rapvis.git
-    cd rapvis
+    cd rapvis/Rapvis
     ```
 
 2.  **Set up the environment:**
@@ -43,12 +43,12 @@ Efterfrågeanalys is a Python-based desktop application designed for analyzing d
 
 3.  **Install dependencies:**
     ```bash
-    pip install -r Rapvis/requirements.txt
+    pip install -r requirements.txt
     ```
 
 4.  **Run the application:**
     ```bash
-    python Rapvis/src/app.py
+    python src/app.py
     ```
 
 ## Building the Executable
@@ -61,7 +61,7 @@ The project uses **PyInstaller** to create a standalone executable.
     cd Rapvis
     pyinstaller build.spec
     ```
-3.  The output will be in `Rapvis/dist/Rapvis`.
+3.  The output will be in `dist/Rapvis`.
 
 ## Creating the Installer
 
@@ -70,7 +70,7 @@ The project uses **Inno Setup** to create the Windows installer.
 1.  Install Inno Setup 6.
 2.  Open `Rapvis/setup.iss`.
 3.  Compile the script.
-4.  The `Rapvis_Setup_v0.3.exe` will be generated in the repository root.
+4.  The `Rapvis_Setup_v0.3.0.exe` will be generated in `Rapvis/` (same folder as `setup.iss`).
 
 ## Project Structure
 

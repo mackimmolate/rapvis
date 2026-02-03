@@ -2,8 +2,8 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Rapvis"
-#define MyAppVersion "0.3"
-#define MyAppPublisher "Rapvis"
+#define MyAppVersion "0.3.0"
+#define MyAppPublisher "MackImmolate"
 #define MyAppExeName "Rapvis.exe"
 
 [Setup]
@@ -19,7 +19,7 @@ DisableProgramGroupPage=yes
 ; Uncomment the following line to run in non administrative install mode (install for current user only.)
 PrivilegesRequired=lowest
 OutputDir=.
-OutputBaseFilename=Rapvis_Setup_v0.3
+OutputBaseFilename=Rapvis_Setup_v0.3.0
 SetupIconFile=src\ikon\icon.ico
 Compression=lzma
 SolidCompression=yes

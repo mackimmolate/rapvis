@@ -9,3 +9,7 @@ dist/
 build/
 Rapvis/dist/
 Rapvis/build/
+Rapvis/.venv/
+Rapvis/Rapvis_Setup_*.exe
+Rapvis/config.json
+Rapvis/settings.json

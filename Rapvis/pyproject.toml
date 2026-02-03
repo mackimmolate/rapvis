@@ -8,7 +8,7 @@ version = "0.3.0"
 description = "Efterfrågeanalys verktyg"
 readme = "README.md"
 authors = [
-  { name = "Author Name", email = "author@example.com" },
+  { name = "MackImmolate" },
 ]
 license = { file = "LICENSE" }
 classifiers = [
