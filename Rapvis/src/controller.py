@@ -105,10 +105,18 @@ class DemandController:
 
         total_demand = agg_data["Demand"].sum()
         peak_row = agg_data.loc[agg_data["Demand"].idxmax()]
-        peak_period = peak_row["Week Start"].strftime("%Y-%m-%d")
+        scale = self.model.time_scale
+        if scale == "weeks":
+            peak_period = peak_row["Week Start"].strftime("%G-W%V")
+        elif scale == "months":
+            peak_period = peak_row["Week Start"].strftime("%Y-%m")
+        else:
+            peak_period = peak_row["Week Start"].strftime("%Y")
         peak_val = peak_row["Demand"]
 
-        text = f"Totalt behov: {total_demand:,.0f}"
+        total_str = f"{total_demand:,.0f}".replace(",", " ")
+        peak_str = f"{peak_val:,.0f}".replace(",", " ")
+        text = f"Totalt behov: {total_str} | Topp: {peak_period} ({peak_str})"
         self.view.update_insights(text)
 
     def on_timescale_change(self):

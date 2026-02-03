@@ -19,16 +19,14 @@ def load_data(file_path, *, return_article_col=False):
     data = data.rename(columns={article_col: "Article number buyer"})
     data["ArticleNormalized"] = normalize_articles(data["Article number buyer"])
 
-    id_columns = [
-        "Article number buyer",
-        "ArticleNormalized",
-        "Immediate demand",
-        "Backorder",
-    ]
-
-    for col in id_columns:
-        if col not in data.columns and col != "ArticleNormalized":
+    required_columns = ["Article number buyer"]
+    for col in required_columns:
+        if col not in data.columns:
             raise ValueError(f"CSV-filen saknar den förväntade kolumnen: '{col}'.")
+
+    id_columns = ["Article number buyer", "ArticleNormalized"]
+    optional_columns = ["Immediate demand", "Backorder"]
+    id_columns.extend([col for col in optional_columns if col in data.columns])
 
     week_columns = [col for col in data.columns if " - " in col]
 

@@ -1,5 +1,11 @@
+import os
+import sys
 import unittest
+
 import pandas as pd
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "src")))
+
 from data_processing import normalize_articles, add_period_string
 
 class TestDataProcessing(unittest.TestCase):

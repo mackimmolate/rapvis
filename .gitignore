@@ -1,2 +1,11 @@
 __pycache__/
 *.pyc
+.venv/
+*.egg-info/
+.pytest_cache/
+config.json
+settings.json
+dist/
+build/
+Rapvis/dist/
+Rapvis/build/
