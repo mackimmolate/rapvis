@@ -1,7 +1,7 @@
 
 import pandas as pd
 import threading
-from data_processing import load_data, aggregate_data, add_period_string, normalize_articles, get_period_strings
+from data_processing import load_data, aggregate_data, add_period_string, normalize_articles
 
 class DemandModel:
     def __init__(self, config_manager):
