@@ -118,12 +118,3 @@ def add_period_string(df: pd.DataFrame, scale: str) -> pd.DataFrame:
             cal["year"].astype(str) + "-W" + cal["week"].astype(str).str.zfill(2)
         )
     return df
-
-
-def get_period_strings(df: pd.DataFrame, scale: str) -> list[str]:
-    """Returnerar en sorterad lista med unika periodsträngar."""
-    if "Week Start" not in df.columns or df.empty:
-        return []
-
-    df_with = add_period_string(df, scale)
-    return sorted(df_with["PeriodString"].dropna().unique().tolist())

@@ -11,44 +11,6 @@ import numpy as np
 from datetime import timedelta
 
 
-def period_str_to_datetime(s, scale):
-    """Konverterar periodsträngar till pd.Timestamp baserat på vald skala."""
-    if not s:
-        return None
-    try:
-        if scale in ("weeks", "Veckor"):
-            year, week_str = s.split("-W")
-            year, week = int(year), int(week_str)
-            # Använder fromisocalendar som förväntar sig standard ISO-vecka
-            return pd.Timestamp(datetime.date.fromisocalendar(year, week, 1))
-        if scale in ("months", "Månader"):
-            return pd.to_datetime(s, format="%Y-%m")
-        if scale in ("years", "År"):
-            return pd.to_datetime(s, format="%Y")
-    except (ValueError, TypeError):
-        return pd.to_datetime(s, errors="coerce")
-    return pd.to_datetime(s, errors="coerce")
-
-
-def convert_range_to_scale(start_dt, end_dt, scale):
-    """Returnerar periodsträngar för den valda skalan som täcker datumintervallet."""
-    if not start_dt or not end_dt:
-        return "", ""
-
-    if scale in ("weeks", "Veckor"):
-        start_cal = start_dt.isocalendar()
-        end_cal = end_dt.isocalendar()
-        start_str = f"{start_cal.year}-W{start_cal.week:02d}"
-        end_str = f"{end_cal.year}-W{end_cal.week:02d}"
-    elif scale in ("months", "Månader"):
-        start_str = start_dt.strftime("%Y-%m")
-        end_str = end_dt.strftime("%Y-%m")
-    else:  # År
-        start_str = start_dt.strftime("%Y")
-        end_str = end_dt.strftime("%Y")
-    return start_str, end_str
-
-
 def on_click(event, data1, data2, update_function, time_scale="weeks"):
     """Hanterar klickhändelser på grafen för att visa detaljerad data för den klickade perioden."""
     if event.inaxes is None or event.xdata is None:
