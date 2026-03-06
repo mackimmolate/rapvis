@@ -2,6 +2,20 @@
   "name": "rapvis-pwa",
   "private": true,
   "version": "0.4.0",
+  "description": "Progressive Web App for local demand analysis and comparison.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mackimmolate/rapvis.git"
+  },
+  "homepage": "https://mackimmolate.github.io/rapvis/",
+  "bugs": {
+    "url": "https://github.com/mackimmolate/rapvis/issues"
+  },
+  "engines": {
+    "node": ">=22.0.0",
+    "npm": ">=10.0.0"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",

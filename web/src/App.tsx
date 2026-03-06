@@ -379,7 +379,7 @@ export default function App() {
     <div className="page-shell">
       <div className="app-window">
         <div className="title-row">
-          <div className="window-title">Efterfrågeanalys V0.4</div>
+          <div className="window-title">Efterfrågeanalys V{__APP_VERSION__}</div>
           <div className="window-actions">
             {deferredPrompt ? (
               <button className="title-button" onClick={() => void handleInstall()} type="button">

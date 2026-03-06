@@ -1,6 +1,13 @@
-# Rapvis PWA
+# Rapvis Web Workspace
 
-Browser-based demand analysis for local CSV files.
+This directory contains the PWA source code for Rapvis.
+
+Repository-level documentation lives in the root:
+
+- [README.md](C:/Users/marcusj/Documents/GitHub/rapvis/README.md)
+- [Architecture](C:/Users/marcusj/Documents/GitHub/rapvis/docs/ARCHITECTURE.md)
+- [Contributing](C:/Users/marcusj/Documents/GitHub/rapvis/CONTRIBUTING.md)
+- [Versioning](C:/Users/marcusj/Documents/GitHub/rapvis/VERSIONING.md)
 
 ## Commands
 
@@ -10,9 +17,3 @@ npm run dev
 npm run lint
 npm run build
 ```
-
-## Notes
-
-- The app is static and deploys cleanly to GitHub Pages.
-- CSV parsing, period aggregation, filtering, and comparison are all handled client-side.
-- PWA support is configured through `vite-plugin-pwa`.
