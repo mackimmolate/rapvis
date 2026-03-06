@@ -19,6 +19,7 @@ body {
   min-width: 320px;
   min-height: 100vh;
   background: #edf1f5;
+  overflow: hidden;
 }
 
 button,
@@ -37,15 +38,20 @@ button {
 
 .page-shell {
   min-height: 100vh;
-  padding: 18px;
+  min-height: 100dvh;
+  padding: 8px;
 }
 
 .app-window {
-  width: min(1200px, 100%);
+  width: min(1680px, calc(100vw - 16px));
+  min-height: calc(100vh - 16px);
+  min-height: calc(100dvh - 16px);
   margin: 0 auto;
   border: 1px solid #cfd7df;
   background: #f7f9fb;
   box-shadow: 0 12px 36px rgba(15, 23, 42, 0.08);
+  display: flex;
+  flex-direction: column;
 }
 
 .title-row {
@@ -174,9 +180,11 @@ button {
 
 .graph-panel {
   min-height: 420px;
+  flex: 1 1 auto;
   padding: 14px;
   border-bottom: 1px solid #d6dde5;
   background: #ffffff;
+  overflow: hidden;
 }
 
 .insights-panel {
@@ -202,11 +210,17 @@ button {
 .table-panel {
   padding: 0;
   background: #ffffff;
+  min-height: 210px;
+  max-height: 30vh;
+  max-height: 30dvh;
+  display: flex;
+  flex-direction: column;
 }
 
 .table-wrapper {
   overflow: auto;
-  max-height: 360px;
+  flex: 1 1 auto;
+  max-height: none;
 }
 
 table {
@@ -258,7 +272,7 @@ tbody tr:hover {
 .empty-panel {
   display: grid;
   place-items: center;
-  min-height: 360px;
+  min-height: 100%;
 }
 
 .hidden-input {
@@ -306,7 +320,20 @@ tbody tr:hover {
     padding: 8px;
   }
 
+  body {
+    overflow: auto;
+  }
+
+  .app-window {
+    min-height: auto;
+  }
+
   .graph-panel {
     min-height: 340px;
+    flex: 0 0 auto;
+  }
+
+  .table-panel {
+    max-height: none;
   }
 }
