@@ -290,12 +290,24 @@ tbody tr:hover {
 .empty-table {
   color: #6d8193;
   text-align: center;
+  font-size: 14px;
+  line-height: 1.2;
+  font-weight: 400;
 }
 
 .empty-panel {
   display: grid;
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
   place-items: center;
   min-height: 100%;
+  padding: 12px;
+}
+
+.empty-table {
+  padding-top: 8px;
+  padding-bottom: 8px;
 }
 
 .hidden-input {
