@@ -10,13 +10,14 @@ Rapvis uses Semantic Versioning.
 - `MINOR`: backward-compatible features and meaningful behavior additions
 - `PATCH`: backward-compatible fixes, documentation-only corrections, and low-risk internal improvements
 
-## Pre-1.0 Guidance
+## Stability Policy
 
-The project is currently below `1.0.0`. Until `1.0.0` is released:
+Rapvis is now at `1.0.0`. From this point:
 
-- minor releases may still include breaking changes if they are necessary
-- patch releases should remain safe bug-fix or documentation updates
-- all breaking behavior changes should still be called out explicitly in the changelog
+- breaking behavior changes require a major version bump
+- minor releases add features without breaking established behavior
+- patch releases stay limited to fixes, low-risk improvements, and documentation updates
+- any intentional compatibility impact should still be called out explicitly in the changelog
 
 ## Release Checklist
 

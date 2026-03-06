@@ -1,7 +1,7 @@
 {
   "name": "rapvis-pwa",
   "private": true,
-  "version": "0.4.0",
+  "version": "1.0.0",
   "description": "Progressive Web App for local demand analysis and comparison.",
   "license": "MIT",
   "repository": {
