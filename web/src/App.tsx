@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRegisterSW } from "virtual:pwa-register/react";
 
 import { PeriodChart } from "./components/PeriodChart";
@@ -10,11 +10,13 @@ import {
   formatDemand,
   loadDemandFile,
   listAvailablePeriods,
+  normalizeArticle,
   summarizeSeries,
 } from "./lib/demand";
 import { loadPreferences, savePreferences } from "./lib/storage";
 import type {
   ArticleGroups,
+  DemandRecord,
   LoadedDataset,
   SortKey,
   StoredPreferences,
@@ -27,10 +29,17 @@ interface BeforeInstallPromptEvent extends Event {
   userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
 }
 
+interface ContextMenuState {
+  visible: boolean;
+  x: number;
+  y: number;
+}
+
 export default function App() {
   const [preferences] = useState(() => loadPreferences());
   const currentInputRef = useRef<HTMLInputElement>(null);
   const historyInputRef = useRef<HTMLInputElement>(null);
+  const contextMenuRef = useRef<HTMLDivElement>(null);
 
   const [currentData, setCurrentData] = useState<LoadedDataset | null>(null);
   const [historyData, setHistoryData] = useState<LoadedDataset | null>(null);
@@ -45,10 +54,15 @@ export default function App() {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [errorMessage, setErrorMessage] = useState("");
   const [loadingTarget, setLoadingTarget] = useState<"current" | "history" | null>(null);
+  const [markedArticles, setMarkedArticles] = useState<string[]>([]);
+  const [selectedArticleFilter, setSelectedArticleFilter] = useState<string[]>([]);
+  const [contextMenu, setContextMenu] = useState<ContextMenuState>({
+    visible: false,
+    x: 0,
+    y: 0,
+  });
   const [deferredPrompt, setDeferredPrompt] =
     useState<BeforeInstallPromptEvent | null>(null);
-
-  const deferredFilter = useDeferredValue(articleFilter);
 
   const {
     offlineReady: [offlineReady, setOfflineReady],
@@ -72,7 +86,7 @@ export default function App() {
     scale: timeScale,
     fromPeriod,
     toPeriod,
-    articleFilter: deferredFilter,
+    articleFilter,
     articleGroups,
     articleSearch: "",
   });
@@ -81,31 +95,50 @@ export default function App() {
     scale: timeScale,
     fromPeriod,
     toPeriod,
-    articleFilter: deferredFilter,
+    articleFilter,
     articleGroups,
     articleSearch: "",
   });
+
+  const manuallyFilteredCurrent = filterRecordsBySelectedArticles(
+    filteredCurrent,
+    selectedArticleFilter,
+  );
+  const manuallyFilteredHistory = filterRecordsBySelectedArticles(
+    filteredHistory,
+    selectedArticleFilter,
+  );
 
   const visiblePeriods = periodOptions.filter((period) => {
     if (fromPeriod && period < fromPeriod) {
       return false;
     }
+
     if (toPeriod && period > toPeriod) {
       return false;
     }
+
     return true;
   });
 
   const periodSeries = buildPeriodSeries(
-    filteredCurrent,
-    filteredHistory,
+    manuallyFilteredCurrent,
+    manuallyFilteredHistory,
     timeScale,
     visiblePeriods,
   );
 
   const summary = summarizeSeries(periodSeries);
-  const tableCurrent = filterRecordsForPeriod(filteredCurrent, timeScale, activePeriod);
-  const tableHistory = filterRecordsForPeriod(filteredHistory, timeScale, activePeriod);
+  const tableCurrent = filterRecordsForPeriod(
+    manuallyFilteredCurrent,
+    timeScale,
+    activePeriod,
+  );
+  const tableHistory = filterRecordsForPeriod(
+    manuallyFilteredHistory,
+    timeScale,
+    activePeriod,
+  );
   const tableRows = sortRows(
     buildTableRows(tableCurrent, tableHistory),
     sortKey,
@@ -153,14 +186,48 @@ export default function App() {
   }, [activePeriod, visiblePeriods]);
 
   useEffect(() => {
+    const visibleArticles = new Set(tableRows.map((row) => row.articleId));
+    setMarkedArticles((currentArticles) =>
+      currentArticles.filter((articleId) => visibleArticles.has(articleId)),
+    );
+  }, [tableRows]);
+
+  useEffect(() => {
     const onBeforeInstallPrompt = (event: Event) => {
       event.preventDefault();
       setDeferredPrompt(event as BeforeInstallPromptEvent);
     };
 
+    const onWindowPointerDown = (event: MouseEvent) => {
+      if (
+        contextMenuRef.current &&
+        event.target instanceof Node &&
+        contextMenuRef.current.contains(event.target)
+      ) {
+        return;
+      }
+
+      setContextMenu((currentState) =>
+        currentState.visible ? { visible: false, x: 0, y: 0 } : currentState,
+      );
+    };
+
+    const onWindowCloseMenu = () => {
+      setContextMenu((currentState) =>
+        currentState.visible ? { visible: false, x: 0, y: 0 } : currentState,
+      );
+    };
+
     window.addEventListener("beforeinstallprompt", onBeforeInstallPrompt);
+    window.addEventListener("mousedown", onWindowPointerDown);
+    window.addEventListener("scroll", onWindowCloseMenu, true);
+    window.addEventListener("resize", onWindowCloseMenu);
+
     return () => {
       window.removeEventListener("beforeinstallprompt", onBeforeInstallPrompt);
+      window.removeEventListener("mousedown", onWindowPointerDown);
+      window.removeEventListener("scroll", onWindowCloseMenu, true);
+      window.removeEventListener("resize", onWindowCloseMenu);
     };
   }, []);
 
@@ -186,6 +253,8 @@ export default function App() {
         setHistoryData(dataset);
       }
       setActivePeriod(null);
+      setMarkedArticles([]);
+      setSelectedArticleFilter([]);
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : "Filen kunde inte läsas.",
@@ -222,9 +291,20 @@ export default function App() {
     setActivePeriod(null);
   }
 
+  function handleArticleFilterChange(nextFilter: string) {
+    setArticleFilter(nextFilter);
+    setActivePeriod(null);
+    setMarkedArticles([]);
+    setSelectedArticleFilter([]);
+    setContextMenu({ visible: false, x: 0, y: 0 });
+  }
+
   function handleFilterReset() {
     setArticleFilter("Alla");
     setActivePeriod(null);
+    setMarkedArticles([]);
+    setSelectedArticleFilter([]);
+    setContextMenu({ visible: false, x: 0, y: 0 });
 
     if (periodOptions.length > 0) {
       setFromPeriod(periodOptions[0]);
@@ -237,8 +317,63 @@ export default function App() {
     setActivePeriod(null);
   }
 
-  const insightsText = buildInsightsText(summary, timeScale, filteredCurrent.length > 0);
-  const statusText = buildStatusText(loadingTarget, currentData, historyData, activePeriod);
+  function handleRowClick(
+    articleId: string,
+    event: React.MouseEvent<HTMLTableRowElement>,
+  ) {
+    setContextMenu({ visible: false, x: 0, y: 0 });
+
+    if (event.ctrlKey || event.metaKey) {
+      setMarkedArticles((currentArticles) =>
+        currentArticles.includes(articleId)
+          ? currentArticles.filter((currentArticleId) => currentArticleId !== articleId)
+          : [...currentArticles, articleId],
+      );
+      return;
+    }
+
+    setMarkedArticles([articleId]);
+  }
+
+  function handleRowContextMenu(
+    articleId: string,
+    event: React.MouseEvent<HTMLTableRowElement>,
+  ) {
+    event.preventDefault();
+
+    const nextMarkedArticles = markedArticles.includes(articleId)
+      ? markedArticles
+      : [articleId];
+
+    setMarkedArticles(nextMarkedArticles);
+    setContextMenu({
+      visible: true,
+      x: event.clientX,
+      y: event.clientY,
+    });
+  }
+
+  function handleShowOnlySelected() {
+    if (markedArticles.length === 0) {
+      return;
+    }
+
+    setSelectedArticleFilter(markedArticles);
+    setActivePeriod(null);
+    setContextMenu({ visible: false, x: 0, y: 0 });
+  }
+
+  const insightsText = buildInsightsText(
+    summary,
+    manuallyFilteredCurrent.length > 0,
+  );
+  const statusText = buildStatusText(
+    loadingTarget,
+    currentData,
+    historyData,
+    activePeriod,
+    selectedArticleFilter,
+  );
 
   return (
     <div className="page-shell">
@@ -274,10 +409,7 @@ export default function App() {
           <select
             className="toolbar-select article-select"
             value={articleFilter}
-            onChange={(event) => {
-              setArticleFilter(event.target.value);
-              setActivePeriod(null);
-            }}
+            onChange={(event) => handleArticleFilterChange(event.target.value)}
           >
             {articleFilterOptions.map((option) => (
               <option key={option} value={option}>
@@ -423,7 +555,12 @@ export default function App() {
               <tbody>
                 {tableRows.length > 0 ? (
                   tableRows.map((row) => (
-                    <tr key={row.articleId}>
+                    <tr
+                      key={row.articleId}
+                      className={markedArticles.includes(row.articleId) ? "selected-row" : ""}
+                      onClick={(event) => handleRowClick(row.articleId, event)}
+                      onContextMenu={(event) => handleRowContextMenu(row.articleId, event)}
+                    >
                       <td>{row.articleId}</td>
                       <td>{formatDemand(row.current)}</td>
                       <td>{formatDemand(row.history)}</td>
@@ -457,6 +594,18 @@ export default function App() {
           type="file"
         />
       </div>
+
+      {contextMenu.visible ? (
+        <div
+          ref={contextMenuRef}
+          className="context-menu"
+          style={{ left: contextMenu.x, top: contextMenu.y }}
+        >
+          <button className="context-menu-button" onClick={handleShowOnlySelected} type="button">
+            Visa endast valda
+          </button>
+        </div>
+      ) : null}
 
       {(offlineReady || needRefresh) && (
         <div className="sw-toast">
@@ -522,6 +671,7 @@ function sortRows(
     if (sortKey === "articleId") {
       return left.articleId.localeCompare(right.articleId, "sv");
     }
+
     return left[sortKey] - right[sortKey];
   });
 
@@ -530,7 +680,6 @@ function sortRows(
 
 function buildInsightsText(
   summary: ReturnType<typeof summarizeSeries>,
-  _timeScale: TimeScale,
   hasCurrentData: boolean,
 ) {
   if (!hasCurrentData || !summary.peakPeriod) {
@@ -548,6 +697,7 @@ function buildStatusText(
   currentData: LoadedDataset | null,
   historyData: LoadedDataset | null,
   activePeriod: string | null,
+  selectedArticleFilter: string[],
 ) {
   if (loadingTarget === "current") {
     return "Laddar förfrågan...";
@@ -559,6 +709,10 @@ function buildStatusText(
 
   if (activePeriod) {
     return `Tabellen visar vald period: ${activePeriod}`;
+  }
+
+  if (selectedArticleFilter.length > 0) {
+    return `Visar endast ${selectedArticleFilter.length} valda artiklar.`;
   }
 
   if (currentData && historyData) {
@@ -574,4 +728,18 @@ function buildStatusText(
   }
 
   return "";
+}
+
+function filterRecordsBySelectedArticles(
+  records: DemandRecord[],
+  articleIds: string[],
+) {
+  if (articleIds.length === 0) {
+    return records;
+  }
+
+  const normalizedArticles = new Set(
+    articleIds.map((articleId) => normalizeArticle(articleId)),
+  );
+  return records.filter((record) => normalizedArticles.has(record.articleNormalized));
 }

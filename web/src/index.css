@@ -258,6 +258,12 @@ tbody tr:hover {
   background: #eef5fb;
 }
 
+.selected-row,
+.selected-row:nth-child(even),
+.selected-row:hover {
+  background: #dcecff;
+}
+
 .header-button {
   display: inline-flex;
   align-items: center;
@@ -298,6 +304,30 @@ tbody tr:hover {
   background: #ffffff;
   color: #23364a;
   box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
+}
+
+.context-menu {
+  position: fixed;
+  z-index: 10;
+  min-width: 160px;
+  padding: 4px;
+  border: 1px solid #bcc8d4;
+  background: #ffffff;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.16);
+}
+
+.context-menu-button {
+  width: 100%;
+  min-height: 28px;
+  padding: 4px 10px;
+  border: 0;
+  background: #ffffff;
+  color: #23364a;
+  text-align: left;
+}
+
+.context-menu-button:hover {
+  background: #e9f2fb;
 }
 
 .sw-toast {
