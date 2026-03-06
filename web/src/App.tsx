@@ -1,18 +1,15 @@
-import { startTransition, useDeferredValue, useEffect, useState } from "react";
+import { useDeferredValue, useEffect, useRef, useState } from "react";
 import { useRegisterSW } from "virtual:pwa-register/react";
 
 import { PeriodChart } from "./components/PeriodChart";
 import {
-  DEFAULT_ARTICLE_GROUPS,
   buildPeriodSeries,
   buildTableRows,
   filterRecords,
   filterRecordsForPeriod,
   formatDemand,
-  formatImportedAt,
   loadDemandFile,
   listAvailablePeriods,
-  sanitizeArticleGroups,
   summarizeSeries,
 } from "./lib/demand";
 import { loadPreferences, savePreferences } from "./lib/storage";
@@ -32,13 +29,14 @@ interface BeforeInstallPromptEvent extends Event {
 
 export default function App() {
   const [preferences] = useState(() => loadPreferences());
+  const currentInputRef = useRef<HTMLInputElement>(null);
+  const historyInputRef = useRef<HTMLInputElement>(null);
 
   const [currentData, setCurrentData] = useState<LoadedDataset | null>(null);
   const [historyData, setHistoryData] = useState<LoadedDataset | null>(null);
   const [timeScale, setTimeScale] = useState<TimeScale>(preferences.timeScale);
   const [articleFilter, setArticleFilter] = useState(preferences.articleFilter);
-  const [articleGroups, setArticleGroups] = useState<ArticleGroups>(preferences.articleGroups);
-  const [articleSearch, setArticleSearch] = useState("");
+  const [articleGroups] = useState<ArticleGroups>(preferences.articleGroups);
   const [fromPeriod, setFromPeriod] = useState("");
   const [toPeriod, setToPeriod] = useState("");
   const [showLabels, setShowLabels] = useState(preferences.showLabels);
@@ -47,15 +45,10 @@ export default function App() {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [errorMessage, setErrorMessage] = useState("");
   const [loadingTarget, setLoadingTarget] = useState<"current" | "history" | null>(null);
-  const [groupEditorOpen, setGroupEditorOpen] = useState(false);
-  const [groupDraft, setGroupDraft] = useState(
-    JSON.stringify(preferences.articleGroups, null, 2),
-  );
   const [deferredPrompt, setDeferredPrompt] =
     useState<BeforeInstallPromptEvent | null>(null);
-  const [isOnline, setIsOnline] = useState(() => navigator.onLine);
 
-  const deferredSearch = useDeferredValue(articleSearch.trim());
+  const deferredFilter = useDeferredValue(articleFilter);
 
   const {
     offlineReady: [offlineReady, setOfflineReady],
@@ -63,43 +56,43 @@ export default function App() {
     updateServiceWorker,
   } = useRegisterSW();
 
+  const articleFilterOptions = [
+    ...Object.keys(articleGroups),
+    "Övrigt",
+    "Alla",
+  ].filter((value, index, array) => array.indexOf(value) === index);
+
   const periodOptions = listAvailablePeriods(
     currentData?.records ?? [],
     historyData?.records ?? [],
     timeScale,
   );
 
-  const articleFilterOptions = ["Alla", ...Object.keys(articleGroups), "Övrigt"].filter(
-    (value, index, array) => array.indexOf(value) === index,
-  );
-
   const filteredCurrent = filterRecords(currentData?.records ?? [], {
     scale: timeScale,
     fromPeriod,
     toPeriod,
-    articleFilter,
+    articleFilter: deferredFilter,
     articleGroups,
-    articleSearch: deferredSearch,
+    articleSearch: "",
   });
 
   const filteredHistory = filterRecords(historyData?.records ?? [], {
     scale: timeScale,
     fromPeriod,
     toPeriod,
-    articleFilter,
+    articleFilter: deferredFilter,
     articleGroups,
-    articleSearch: deferredSearch,
+    articleSearch: "",
   });
 
   const visiblePeriods = periodOptions.filter((period) => {
     if (fromPeriod && period < fromPeriod) {
       return false;
     }
-
     if (toPeriod && period > toPeriod) {
       return false;
     }
-
     return true;
   });
 
@@ -109,20 +102,12 @@ export default function App() {
     timeScale,
     visiblePeriods,
   );
-  const summary = summarizeSeries(periodSeries);
 
-  const visibleCurrentForTable = filterRecordsForPeriod(
-    filteredCurrent,
-    timeScale,
-    activePeriod,
-  );
-  const visibleHistoryForTable = filterRecordsForPeriod(
-    filteredHistory,
-    timeScale,
-    activePeriod,
-  );
+  const summary = summarizeSeries(periodSeries);
+  const tableCurrent = filterRecordsForPeriod(filteredCurrent, timeScale, activePeriod);
+  const tableHistory = filterRecordsForPeriod(filteredHistory, timeScale, activePeriod);
   const tableRows = sortRows(
-    buildTableRows(visibleCurrentForTable, visibleHistoryForTable),
+    buildTableRows(tableCurrent, tableHistory),
     sortKey,
     sortDirection,
   );
@@ -143,11 +128,9 @@ export default function App() {
       if (fromPeriod) {
         setFromPeriod("");
       }
-
       if (toPeriod) {
         setToPeriod("");
       }
-
       if (activePeriod) {
         setActivePeriod(null);
       }
@@ -164,12 +147,6 @@ export default function App() {
   }, [activePeriod, fromPeriod, periodOptions, toPeriod]);
 
   useEffect(() => {
-    if (!articleFilterOptions.includes(articleFilter)) {
-      setArticleFilter("Alla");
-    }
-  }, [articleFilter, articleFilterOptions]);
-
-  useEffect(() => {
     if (activePeriod && !visiblePeriods.includes(activePeriod)) {
       setActivePeriod(null);
     }
@@ -181,18 +158,9 @@ export default function App() {
       setDeferredPrompt(event as BeforeInstallPromptEvent);
     };
 
-    const onConnectivityChange = () => {
-      setIsOnline(navigator.onLine);
-    };
-
     window.addEventListener("beforeinstallprompt", onBeforeInstallPrompt);
-    window.addEventListener("online", onConnectivityChange);
-    window.addEventListener("offline", onConnectivityChange);
-
     return () => {
       window.removeEventListener("beforeinstallprompt", onBeforeInstallPrompt);
-      window.removeEventListener("online", onConnectivityChange);
-      window.removeEventListener("offline", onConnectivityChange);
     };
   }, []);
 
@@ -212,14 +180,12 @@ export default function App() {
 
     try {
       const dataset = await loadDemandFile(file);
-      startTransition(() => {
-        if (target === "current") {
-          setCurrentData(dataset);
-        } else {
-          setHistoryData(dataset);
-        }
-        setActivePeriod(null);
-      });
+      if (target === "current") {
+        setCurrentData(dataset);
+      } else {
+        setHistoryData(dataset);
+      }
+      setActivePeriod(null);
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : "Filen kunde inte läsas.",
@@ -251,9 +217,13 @@ export default function App() {
     setSortDirection(column === "articleId" ? "asc" : "desc");
   }
 
-  function resetFilters() {
+  function handleTimeScaleChange(scale: TimeScale) {
+    setTimeScale(scale);
+    setActivePeriod(null);
+  }
+
+  function handleFilterReset() {
     setArticleFilter("Alla");
-    setArticleSearch("");
     setActivePeriod(null);
 
     if (periodOptions.length > 0) {
@@ -262,269 +232,146 @@ export default function App() {
     }
   }
 
-  function clearHistory() {
+  function handleClearHistory() {
     setHistoryData(null);
     setActivePeriod(null);
   }
 
-  function openGroupEditor() {
-    setGroupDraft(JSON.stringify(articleGroups, null, 2));
-    setGroupEditorOpen(true);
-    setErrorMessage("");
-  }
-
-  function saveGroupEditorDraft() {
-    try {
-      const parsed = JSON.parse(groupDraft) as ArticleGroups;
-      const sanitized = sanitizeArticleGroups(parsed);
-
-      if (Object.keys(sanitized).length === 0) {
-        throw new Error("Minst en grupp med artikelnummer krävs.");
-      }
-
-      setArticleGroups(sanitized);
-      setGroupEditorOpen(false);
-    } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : "Grupperna kunde inte sparas.",
-      );
-    }
-  }
-
-  function resetGroupEditorDraft() {
-    setGroupDraft(JSON.stringify(DEFAULT_ARTICLE_GROUPS, null, 2));
-  }
+  const insightsText = buildInsightsText(summary, timeScale, filteredCurrent.length > 0);
+  const statusText = buildStatusText(loadingTarget, currentData, historyData, activePeriod);
 
   return (
-    <div className="app-shell">
-      <div className="backdrop backdrop-one" />
-      <div className="backdrop backdrop-two" />
-
-      <header className="hero panel">
-        <div className="hero-copy">
-          <span className="eyebrow">Progressive demand analysis</span>
-          <h1>Rapvis</h1>
-          <p>
-            Ladda aktuell efterfrågan och historik, jämför perioder och installera
-            analysen som en riktig app.
-          </p>
-        </div>
-
-        <div className="hero-actions">
-          <div className="status-badges">
-            <span className={`status-badge ${isOnline ? "online" : "offline"}`}>
-              {isOnline ? "Online" : "Offline"}
-            </span>
-            <span className="status-badge accent">
-              {navigator.serviceWorker ? "PWA aktiv" : "Webbläge"}
-            </span>
-          </div>
-
-          {deferredPrompt ? (
-            <button className="button button-primary" onClick={() => void handleInstall()}>
-              Installera appen
-            </button>
-          ) : null}
-        </div>
-      </header>
-
-      {errorMessage ? <div className="banner error">{errorMessage}</div> : null}
-
-      <section className="top-grid">
-        <DatasetCard
-          title="Nuvarande förfrågan"
-          description="Importera den senaste CSV-filen som bas för analysen."
-          dataset={currentData}
-          busy={loadingTarget === "current"}
-          onUpload={(event) => void handleUpload("current", event)}
-          onClear={
-            currentData
-              ? () => {
-                  setCurrentData(null);
-                  setActivePeriod(null);
-                }
-              : undefined
-          }
-        />
-
-        <DatasetCard
-          title="Historik"
-          description="Ladda en andra CSV-fil för att jämföra mot tidigare utfall."
-          dataset={historyData}
-          busy={loadingTarget === "history"}
-          onUpload={(event) => void handleUpload("history", event)}
-          onClear={historyData ? clearHistory : undefined}
-        />
-
-        <section className="panel controls-panel">
-          <div className="panel-header">
-            <div>
-              <span className="eyebrow">Filter</span>
-              <h2>Analyskontroller</h2>
-            </div>
-            <button className="button button-ghost" onClick={resetFilters}>
-              Återställ
-            </button>
-          </div>
-
-          <div className="control-stack">
-            <label className="field">
-              <span>Tidsnivå</span>
-              <div className="segmented">
-                {[
-                  { label: "Veckor", value: "weeks" },
-                  { label: "Månader", value: "months" },
-                  { label: "År", value: "years" },
-                ].map((option) => (
-                  <button
-                    key={option.value}
-                    className={`segment ${timeScale === option.value ? "active" : ""}`}
-                    onClick={() => {
-                      setTimeScale(option.value as TimeScale);
-                      setActivePeriod(null);
-                    }}
-                    type="button"
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-            </label>
-
-            <div className="field-row">
-              <label className="field">
-                <span>Från</span>
-                <select
-                  value={fromPeriod}
-                  onChange={(event) => setFromPeriod(event.target.value)}
-                  disabled={periodOptions.length === 0}
-                >
-                  {periodOptions.map((period) => (
-                    <option key={period} value={period}>
-                      {period}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label className="field">
-                <span>Till</span>
-                <select
-                  value={toPeriod}
-                  onChange={(event) => setToPeriod(event.target.value)}
-                  disabled={periodOptions.length === 0}
-                >
-                  {periodOptions.map((period) => (
-                    <option key={period} value={period}>
-                      {period}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
-
-            <label className="field">
-              <span>Artikelgrupp</span>
-              <select
-                value={articleFilter}
-                onChange={(event) => {
-                  setArticleFilter(event.target.value);
-                  setActivePeriod(null);
-                }}
-              >
-                {articleFilterOptions.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <label className="field">
-              <span>Artikelsökning</span>
-              <input
-                type="search"
-                value={articleSearch}
-                onChange={(event) => setArticleSearch(event.target.value)}
-                placeholder="Sök artikelnummer"
-              />
-            </label>
-
-            <label className="toggle">
-              <input
-                checked={showLabels}
-                onChange={(event) => setShowLabels(event.target.checked)}
-                type="checkbox"
-              />
-              <span>Visa värden direkt i grafen</span>
-            </label>
-
-            <div className="control-actions">
-              <button className="button button-secondary" onClick={openGroupEditor}>
-                Redigera grupper
-              </button>
-              <button
-                className="button button-ghost"
-                onClick={() => setActivePeriod(null)}
-                disabled={!activePeriod}
-              >
-                Visa hela intervallet
-              </button>
-            </div>
-          </div>
-        </section>
-      </section>
-
-      <section className="metrics-grid">
-        <MetricCard
-          label="Aktuell volym"
-          value={formatDemand(summary.totalCurrentDemand)}
-          helper={
-            currentData
-              ? `${currentData.records.length} datapunkter`
-              : "Ladda en CSV-fil för att börja"
-          }
-        />
-        <MetricCard
-          label="Historik"
-          value={formatDemand(summary.totalHistoryDemand)}
-          helper={
-            historyData
-              ? `${historyData.records.length} datapunkter`
-              : "Ingen historik laddad"
-          }
-        />
-        <MetricCard
-          label="Toppperiod"
-          value={summary.peakPeriod?.label ?? "Ingen"}
-          helper={
-            summary.peakPeriod
-              ? `${formatDemand(summary.peakPeriod.current)} i efterfrågan`
-              : "Ingen data för valt urval"
-          }
-        />
-        <MetricCard
-          label="Skillnad"
-          value={formatDemand(summary.deltaDemand)}
-          helper={activePeriod ? `Tabellen visar ${activePeriod}` : "Jämfört mot historiken"}
-          accent={summary.deltaDemand >= 0 ? "positive" : "negative"}
-        />
-      </section>
-
-      <section className="content-grid">
-        <section className="panel chart-panel">
-          <div className="panel-header">
-            <div>
-              <span className="eyebrow">Visualisering</span>
-              <h2>Efterfrågan över tid</h2>
-            </div>
-            {activePeriod ? (
-              <button className="button button-ghost" onClick={() => setActivePeriod(null)}>
-                Fokuserad period: {activePeriod}
+    <div className="page-shell">
+      <div className="app-window">
+        <div className="title-row">
+          <div className="window-title">Efterfrågeanalys V0.4</div>
+          <div className="window-actions">
+            {deferredPrompt ? (
+              <button className="title-button" onClick={() => void handleInstall()} type="button">
+                Installera
               </button>
             ) : null}
           </div>
+        </div>
 
+        <div className="toolbar">
+          <button
+            className="toolbar-button success"
+            onClick={() => currentInputRef.current?.click()}
+            type="button"
+          >
+            Ladda förfrågan
+          </button>
+
+          <button
+            className="toolbar-button primary"
+            onClick={() => historyInputRef.current?.click()}
+            type="button"
+          >
+            Ladda historik
+          </button>
+
+          <select
+            className="toolbar-select article-select"
+            value={articleFilter}
+            onChange={(event) => {
+              setArticleFilter(event.target.value);
+              setActivePeriod(null);
+            }}
+          >
+            {articleFilterOptions.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+
+          <label className="toolbar-label">
+            <span>Från:</span>
+            <select
+              className="toolbar-select"
+              value={fromPeriod}
+              onChange={(event) => setFromPeriod(event.target.value)}
+              disabled={periodOptions.length === 0}
+            >
+              {periodOptions.map((period) => (
+                <option key={period} value={period}>
+                  {period}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="toolbar-label">
+            <span>Till:</span>
+            <select
+              className="toolbar-select"
+              value={toPeriod}
+              onChange={(event) => setToPeriod(event.target.value)}
+              disabled={periodOptions.length === 0}
+            >
+              {periodOptions.map((period) => (
+                <option key={period} value={period}>
+                  {period}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <div className="toolbar-radios" role="radiogroup" aria-label="Tidsskala">
+            <label>
+              <input
+                checked={timeScale === "weeks"}
+                onChange={() => handleTimeScaleChange("weeks")}
+                type="radio"
+              />
+              <span>Veckor</span>
+            </label>
+            <label>
+              <input
+                checked={timeScale === "months"}
+                onChange={() => handleTimeScaleChange("months")}
+                type="radio"
+              />
+              <span>Månader</span>
+            </label>
+            <label>
+              <input
+                checked={timeScale === "years"}
+                onChange={() => handleTimeScaleChange("years")}
+                type="radio"
+              />
+              <span>År</span>
+            </label>
+          </div>
+
+          <label className="toolbar-checkbox">
+            <input
+              checked={showLabels}
+              onChange={(event) => setShowLabels(event.target.checked)}
+              type="checkbox"
+            />
+            <span>Visa pratbubblor</span>
+          </label>
+
+          <button className="toolbar-button warning-outline" onClick={handleFilterReset} type="button">
+            Visa alla
+          </button>
+
+          <button
+            className="toolbar-button danger-outline"
+            disabled={!historyData}
+            onClick={handleClearHistory}
+            type="button"
+          >
+            Rensa historik
+          </button>
+        </div>
+
+        {errorMessage ? <div className="message-strip error">{errorMessage}</div> : null}
+        {statusText ? <div className="message-strip status">{statusText}</div> : null}
+
+        <section className="graph-panel">
           {periodSeries.length > 0 ? (
             <PeriodChart
               activePeriod={activePeriod}
@@ -533,152 +380,106 @@ export default function App() {
               showLabels={showLabels}
             />
           ) : (
-            <EmptyState
-              title="Ingen data för valda filter"
-              description="Ladda minst en CSV-fil eller bredda filtren för att visa grafen."
-            />
+            <div className="empty-panel">Ingen data tillgänglig för valda filter</div>
           )}
         </section>
 
-        <section className="panel table-panel">
-          <div className="panel-header">
-            <div>
-              <span className="eyebrow">Fördelning</span>
-              <h2>Artikelmix</h2>
-            </div>
-            <span className="table-meta">
-              {tableRows.length} artiklar
-              {activePeriod ? ` i ${activePeriod}` : ""}
-            </span>
-          </div>
+        <section className="insights-panel">
+          <div className="section-title">Insikter</div>
+          <div className="insights-text">{insightsText}</div>
+        </section>
 
-          {tableRows.length > 0 ? (
-            <div className="table-wrapper">
-              <table>
-                <thead>
-                  <tr>
-                    <SortableHeader
-                      active={sortKey === "articleId"}
-                      direction={sortDirection}
-                      label="Artikelnummer"
-                      onClick={() => handleSort("articleId")}
-                    />
-                    <SortableHeader
-                      active={sortKey === "current"}
-                      direction={sortDirection}
-                      label="Nuvarande"
-                      onClick={() => handleSort("current")}
-                      numeric
-                    />
-                    <SortableHeader
-                      active={sortKey === "history"}
-                      direction={sortDirection}
-                      label="Historik"
-                      onClick={() => handleSort("history")}
-                      numeric
-                    />
-                    <SortableHeader
-                      active={sortKey === "diff"}
-                      direction={sortDirection}
-                      label="Differens"
-                      onClick={() => handleSort("diff")}
-                      numeric
-                    />
-                  </tr>
-                </thead>
-                <tbody>
-                  {tableRows.map((row) => (
+        <section className="table-panel">
+          <div className="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <SortableHeader
+                    active={sortKey === "articleId"}
+                    direction={sortDirection}
+                    label="Artikelnummer"
+                    onClick={() => handleSort("articleId")}
+                  />
+                  <SortableHeader
+                    active={sortKey === "current"}
+                    direction={sortDirection}
+                    label="Nuvarande"
+                    onClick={() => handleSort("current")}
+                  />
+                  <SortableHeader
+                    active={sortKey === "history"}
+                    direction={sortDirection}
+                    label="Historik"
+                    onClick={() => handleSort("history")}
+                  />
+                  <SortableHeader
+                    active={sortKey === "diff"}
+                    direction={sortDirection}
+                    label="Differens"
+                    onClick={() => handleSort("diff")}
+                  />
+                </tr>
+              </thead>
+              <tbody>
+                {tableRows.length > 0 ? (
+                  tableRows.map((row) => (
                     <tr key={row.articleId}>
                       <td>{row.articleId}</td>
                       <td>{formatDemand(row.current)}</td>
                       <td>{formatDemand(row.history)}</td>
-                      <td className={row.diff >= 0 ? "positive" : "negative"}>
-                        {formatDemand(row.diff)}
-                      </td>
+                      <td>{formatDemand(row.diff)}</td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <EmptyState
-              title="Ingen artikelfördelning"
-              description="När data finns i urvalet visas den uppdelad artikel för artikel här."
-            />
-          )}
-        </section>
-      </section>
-
-      {groupEditorOpen ? (
-        <div className="modal-backdrop" onClick={() => setGroupEditorOpen(false)}>
-          <div
-            className="modal panel"
-            onClick={(event) => event.stopPropagation()}
-            role="dialog"
-            aria-modal="true"
-          >
-            <div className="panel-header">
-              <div>
-                <span className="eyebrow">Konfiguration</span>
-                <h2>Artikelgrupper</h2>
-              </div>
-              <button className="button button-ghost" onClick={() => setGroupEditorOpen(false)}>
-                Stäng
-              </button>
-            </div>
-
-            <p className="modal-copy">
-              Spara grupper som JSON där nyckeln är gruppnamnet och värdet är en lista
-              med artikelnummer.
-            </p>
-
-            <textarea
-              className="group-editor"
-              value={groupDraft}
-              onChange={(event) => setGroupDraft(event.target.value)}
-              spellCheck={false}
-            />
-
-            <div className="control-actions">
-              <button className="button button-ghost" onClick={resetGroupEditorDraft}>
-                Återställ till standard
-              </button>
-              <button className="button button-primary" onClick={saveGroupEditorDraft}>
-                Spara grupper
-              </button>
-            </div>
+                  ))
+                ) : (
+                  <tr>
+                    <td className="empty-table" colSpan={4}>
+                      Ingen data tillgänglig.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
-        </div>
-      ) : null}
+        </section>
+
+        <input
+          ref={currentInputRef}
+          accept=".csv,text/csv"
+          className="hidden-input"
+          onChange={(event) => void handleUpload("current", event)}
+          type="file"
+        />
+        <input
+          ref={historyInputRef}
+          accept=".csv,text/csv"
+          className="hidden-input"
+          onChange={(event) => void handleUpload("history", event)}
+          type="file"
+        />
+      </div>
 
       {(offlineReady || needRefresh) && (
-        <div className="sw-toast panel">
-          {offlineReady ? (
-            <div>
-              <strong>Offline-läget är klart.</strong>
-              <p>Rapvis kan nu öppnas även utan nätverk.</p>
-            </div>
-          ) : (
-            <div>
-              <strong>En ny version finns.</strong>
-              <p>Uppdatera för att hämta senaste bygget.</p>
-            </div>
-          )}
-
-          <div className="control-actions">
+        <div className="sw-toast">
+          <div className="sw-toast-text">
+            {offlineReady
+              ? "Offline-läget är klart."
+              : "En ny version finns tillgänglig."}
+          </div>
+          <div className="sw-toast-actions">
             {offlineReady ? (
-              <button className="button button-ghost" onClick={() => setOfflineReady(false)}>
+              <button className="title-button" onClick={() => setOfflineReady(false)} type="button">
                 Stäng
               </button>
             ) : null}
             {needRefresh ? (
               <>
-                <button className="button button-ghost" onClick={() => setNeedRefresh(false)}>
+                <button className="title-button" onClick={() => setNeedRefresh(false)} type="button">
                   Senare
                 </button>
                 <button
-                  className="button button-primary"
+                  className="title-button primary"
                   onClick={() => void updateServiceWorker(true)}
+                  type="button"
                 >
                   Uppdatera
                 </button>
@@ -691,113 +492,22 @@ export default function App() {
   );
 }
 
-function DatasetCard({
-  title,
-  description,
-  dataset,
-  busy,
-  onUpload,
-  onClear,
-}: {
-  title: string;
-  description: string;
-  dataset: LoadedDataset | null;
-  busy: boolean;
-  onUpload: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  onClear?: () => void;
-}) {
-  return (
-    <section className="panel dataset-card">
-      <div className="panel-header">
-        <div>
-          <span className="eyebrow">Import</span>
-          <h2>{title}</h2>
-        </div>
-        {onClear ? (
-          <button className="button button-ghost" onClick={onClear}>
-            Rensa
-          </button>
-        ) : null}
-      </div>
-
-      <p className="dataset-copy">{description}</p>
-
-      <label className={`upload-dropzone ${busy ? "busy" : ""}`}>
-        <input accept=".csv,text/csv" onChange={onUpload} type="file" />
-        <span>{busy ? "Läser fil..." : "Välj CSV-fil"}</span>
-      </label>
-
-      {dataset ? (
-        <dl className="dataset-meta">
-          <div>
-            <dt>Fil</dt>
-            <dd>{dataset.fileName}</dd>
-          </div>
-          <div>
-            <dt>Importerad</dt>
-            <dd>{formatImportedAt(dataset.importedAt)}</dd>
-          </div>
-          <div>
-            <dt>Volym</dt>
-            <dd>{formatDemand(dataset.totalDemand)}</dd>
-          </div>
-        </dl>
-      ) : (
-        <p className="dataset-empty">Ingen fil laddad ännu.</p>
-      )}
-    </section>
-  );
-}
-
-function MetricCard({
-  label,
-  value,
-  helper,
-  accent,
-}: {
-  label: string;
-  value: string;
-  helper: string;
-  accent?: "positive" | "negative";
-}) {
-  return (
-    <section className={`panel metric-card ${accent ?? ""}`}>
-      <span className="metric-label">{label}</span>
-      <strong className="metric-value">{value}</strong>
-      <span className="metric-helper">{helper}</span>
-    </section>
-  );
-}
-
-function EmptyState({ title, description }: { title: string; description: string }) {
-  return (
-    <div className="empty-state">
-      <strong>{title}</strong>
-      <p>{description}</p>
-    </div>
-  );
-}
-
 function SortableHeader({
   label,
   active,
   direction,
-  numeric,
   onClick,
 }: {
   label: string;
   active: boolean;
   direction: "asc" | "desc";
-  numeric?: boolean;
   onClick: () => void;
 }) {
   return (
-    <th className={numeric ? "numeric" : ""}>
-      <button className="sort-button" onClick={onClick} type="button">
+    <th>
+      <button className="header-button" onClick={onClick} type="button">
         <span>{label}</span>
-        <span className={`sort-indicator ${active ? "active" : ""}`}>
-          {active ? (direction === "asc" ? "↑" : "↓") : "↕"}
-        </span>
+        <span>{active ? (direction === "asc" ? "↑" : "↓") : ""}</span>
       </button>
     </th>
   );
@@ -812,9 +522,56 @@ function sortRows(
     if (sortKey === "articleId") {
       return left.articleId.localeCompare(right.articleId, "sv");
     }
-
     return left[sortKey] - right[sortKey];
   });
 
   return sortDirection === "asc" ? sorted : sorted.reverse();
+}
+
+function buildInsightsText(
+  summary: ReturnType<typeof summarizeSeries>,
+  _timeScale: TimeScale,
+  hasCurrentData: boolean,
+) {
+  if (!hasCurrentData || !summary.peakPeriod) {
+    return "Ingen data tillgänglig.";
+  }
+
+  const totalText = formatDemand(summary.totalCurrentDemand);
+  const peakText = formatDemand(summary.peakPeriod.current);
+
+  return `Totalt behov: ${totalText} | Topp: ${summary.peakPeriod.label} (${peakText})`;
+}
+
+function buildStatusText(
+  loadingTarget: "current" | "history" | null,
+  currentData: LoadedDataset | null,
+  historyData: LoadedDataset | null,
+  activePeriod: string | null,
+) {
+  if (loadingTarget === "current") {
+    return "Laddar förfrågan...";
+  }
+
+  if (loadingTarget === "history") {
+    return "Laddar historik...";
+  }
+
+  if (activePeriod) {
+    return `Tabellen visar vald period: ${activePeriod}`;
+  }
+
+  if (currentData && historyData) {
+    return `Förfrågan: ${currentData.fileName} | Historik: ${historyData.fileName}`;
+  }
+
+  if (currentData) {
+    return `Förfrågan: ${currentData.fileName}`;
+  }
+
+  if (historyData) {
+    return `Historik: ${historyData.fileName}`;
+  }
+
+  return "";
 }

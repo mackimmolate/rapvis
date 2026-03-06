@@ -60,7 +60,7 @@ export function PeriodChart({
           {activePeriod ? (
             <ReferenceLine
               x={activePeriod}
-              stroke="#c96e3c"
+              stroke="#f0ad4e"
               strokeDasharray="5 5"
               strokeWidth={2}
             />
@@ -69,9 +69,9 @@ export function PeriodChart({
             type="monotone"
             dataKey="current"
             name="Nuvarande"
-            stroke="#10253f"
+            stroke="#5b9bd5"
             strokeWidth={3}
-            dot={{ r: 4, strokeWidth: 2, fill: "#f3efe6" }}
+            dot={{ r: 4, strokeWidth: 2, fill: "#ffffff" }}
             activeDot={{ r: 6 }}
           >
             {showLabels ? (
@@ -79,7 +79,7 @@ export function PeriodChart({
                 dataKey="current"
                 position="top"
                 formatter={formatChartLabel}
-                fill="#10253f"
+                fill="#000000"
                 fontSize={12}
               />
             ) : null}
@@ -88,10 +88,10 @@ export function PeriodChart({
             type="monotone"
             dataKey="history"
             name="Historik"
-            stroke="#5f7f59"
+            stroke="#70ad47"
             strokeWidth={3}
             strokeDasharray="8 5"
-            dot={{ r: 4, strokeWidth: 2, fill: "#f3efe6" }}
+            dot={{ r: 4, strokeWidth: 2, fill: "#ffffff" }}
             activeDot={{ r: 6 }}
           >
             {showLabels ? (
@@ -99,7 +99,7 @@ export function PeriodChart({
                 dataKey="history"
                 position="bottom"
                 formatter={formatChartLabel}
-                fill="#5f7f59"
+                fill="#000000"
                 fontSize={12}
               />
             ) : null}
