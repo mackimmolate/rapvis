@@ -30,10 +30,10 @@ export function PeriodChart({
 }: PeriodChartProps) {
   return (
     <div className="chart-shell">
-      <ResponsiveContainer width="100%" height={360}>
+      <ResponsiveContainer width="100%" height="100%">
         <LineChart
           data={data}
-          margin={{ top: 18, right: 24, left: 0, bottom: 12 }}
+          margin={{ top: 28, right: 24, left: 0, bottom: 14 }}
           onClick={(state: { activeLabel?: string | number } | undefined) => {
             if (typeof state?.activeLabel === "string") {
               onSelectPeriod(state.activeLabel);
@@ -76,11 +76,8 @@ export function PeriodChart({
           >
             {showLabels ? (
               <LabelList
+                content={(props) => renderValueLabel(props, "current")}
                 dataKey="current"
-                position="top"
-                formatter={formatChartLabel}
-                fill="#000000"
-                fontSize={12}
               />
             ) : null}
           </Line>
@@ -96,11 +93,8 @@ export function PeriodChart({
           >
             {showLabels ? (
               <LabelList
+                content={(props) => renderValueLabel(props, "history")}
                 dataKey="history"
-                position="bottom"
-                formatter={formatChartLabel}
-                fill="#000000"
-                fontSize={12}
               />
             ) : null}
           </Line>
@@ -143,4 +137,56 @@ function ChartTooltip({
 function formatChartLabel(value: unknown) {
   const numericValue = Number(value ?? 0);
   return numericValue > 0 ? formatDemand(numericValue) : "";
+}
+
+function renderValueLabel(
+  props: {
+    value?: unknown;
+    x?: unknown;
+    y?: unknown;
+  },
+  variant: "current" | "history",
+) {
+  const label = formatChartLabel(props.value);
+  if (!label || typeof props.x !== "number" || typeof props.y !== "number") {
+    return null;
+  }
+
+  const textWidth = label.length * 7 + 14;
+  const boxHeight = 20;
+  const boxX = props.x - textWidth / 2;
+  const boxY =
+    variant === "current"
+      ? Math.max(4, props.y - 28)
+      : props.y + 10;
+  const fill = variant === "current" ? "#e7d7b8" : "#e1edd0";
+  const stroke = variant === "current" ? "#b69f78" : "#8fad67";
+  const textColor = variant === "current" ? "#2f200d" : "#2b4d19";
+
+  return (
+    <g>
+      <rect
+        fill={fill}
+        height={boxHeight}
+        opacity={0.96}
+        rx={5}
+        ry={5}
+        stroke={stroke}
+        strokeWidth={1}
+        width={textWidth}
+        x={boxX}
+        y={boxY}
+      />
+      <text
+        dominantBaseline="middle"
+        fill={textColor}
+        fontSize={12}
+        textAnchor="middle"
+        x={props.x}
+        y={boxY + boxHeight / 2}
+      >
+        {label}
+      </text>
+    </g>
+  );
 }

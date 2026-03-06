@@ -182,9 +182,9 @@ button {
 }
 
 .graph-panel {
-  min-height: 300px;
-  flex: 0 0 46%;
-  padding: 6px 8px 4px;
+  min-height: 360px;
+  flex: 0 0 52%;
+  padding: 4px 8px 0;
   border-bottom: 1px solid #d6dde5;
   background: #ffffff;
   overflow: hidden;
@@ -194,8 +194,8 @@ button {
   display: flex;
   align-items: center;
   gap: 16px;
-  min-height: 38px;
-  padding: 4px 8px;
+  min-height: 34px;
+  padding: 3px 8px;
   border-bottom: 1px solid #d6dde5;
   background: #f9fbfd;
 }
@@ -215,17 +215,19 @@ button {
 .table-panel {
   padding: 0;
   background: #ffffff;
-  min-height: 260px;
-  flex: 1 1 auto;
+  flex: 1 1 0;
   max-height: none;
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  min-height: 0;
 }
 
 .table-wrapper {
   overflow: auto;
   flex: 1 1 auto;
   max-height: none;
+  min-height: 0;
 }
 
 table {
@@ -367,7 +369,7 @@ tbody tr:hover {
   }
 
   .graph-panel {
-    min-height: 340px;
+    min-height: 380px;
     flex: 0 0 auto;
   }
 
