@@ -34,16 +34,22 @@ button {
 
 #root {
   min-height: 100vh;
+  height: 100vh;
+  height: 100dvh;
 }
 
 .page-shell {
   min-height: 100vh;
   min-height: 100dvh;
+  height: 100vh;
+  height: 100dvh;
   padding: 2px;
 }
 
 .app-window {
   width: calc(100vw - 4px);
+  height: calc(100vh - 4px);
+  height: calc(100dvh - 4px);
   min-height: calc(100vh - 4px);
   min-height: calc(100dvh - 4px);
   margin: 0;
@@ -184,6 +190,8 @@ button {
 .graph-panel {
   min-height: 360px;
   flex: 0 0 52%;
+  display: flex;
+  min-width: 0;
   padding: 4px 8px 0;
   border-bottom: 1px solid #d6dde5;
   background: #ffffff;
@@ -295,6 +303,10 @@ tbody tr:hover {
 }
 
 .chart-shell {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
   height: 100%;
 }
 
@@ -365,6 +377,7 @@ tbody tr:hover {
 
   .app-window {
     min-height: auto;
+    height: auto;
     width: 100%;
   }
 
