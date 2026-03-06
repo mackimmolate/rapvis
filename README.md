@@ -2,6 +2,8 @@
 
 Rapvis is a Progressive Web App for demand analysis. It runs entirely in the browser, imports local CSV files, compares current demand against historical demand, and can be installed like a desktop-style app on supported devices.
 
+Rapvis is intentionally desktop-first. The UI is optimized around a desktop workflow, including multi-select and right-click actions in the comparison table.
+
 ## Highlights
 
 - Client-side CSV import with no backend dependency
@@ -39,6 +41,7 @@ The development server starts in the `web/` workspace.
 ```bash
 cd web
 npm run lint
+npm run test
 npm run build
 ```
 
@@ -63,6 +66,7 @@ Make sure GitHub Pages is configured to publish from `GitHub Actions` in the rep
 
 - [Architecture](C:/Users/marcusj/Documents/GitHub/rapvis/docs/ARCHITECTURE.md)
 - [Contributing](C:/Users/marcusj/Documents/GitHub/rapvis/CONTRIBUTING.md)
+- [Security](C:/Users/marcusj/Documents/GitHub/rapvis/SECURITY.md)
 - [Versioning](C:/Users/marcusj/Documents/GitHub/rapvis/VERSIONING.md)
 - [Changelog](C:/Users/marcusj/Documents/GitHub/rapvis/CHANGELOG.md)
 

@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 This project follows Semantic Versioning. See [VERSIONING.md](C:/Users/marcusj/Documents/GitHub/rapvis/VERSIONING.md).
 
+## [Unreleased]
+
+### Added
+
+- Core automated tests for demand parsing, aggregation, and app smoke behavior
+- Security and dependency maintenance documentation
+- Dependabot configuration for npm and GitHub Actions updates
+
+### Changed
+
+- `vite-plugin-pwa` moved to development dependencies
+- CI now runs tests in addition to lint and build checks
+- The repository is documented as desktop-first
+
 ## [0.4.0] - 2026-03-06
 
 ### Added

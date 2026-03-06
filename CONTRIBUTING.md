@@ -15,13 +15,14 @@ Before opening a pull request or publishing a release, run:
 ```bash
 cd web
 npm run lint
+npm run test
 npm run build
 ```
 
 ## Project Expectations
 
 - Keep the app fully client-side unless a backend is explicitly introduced as a project decision.
-- Preserve the desktop-style workflow and Swedish UI copy unless a change is intentional and reviewed.
+- Preserve the desktop-first workflow and Swedish UI copy unless a change is intentional and reviewed.
 - Prefer focused, maintainable changes over broad rewrites.
 - Update documentation when behavior, deployment, or release process changes.
 

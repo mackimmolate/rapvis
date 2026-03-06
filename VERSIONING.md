@@ -22,7 +22,7 @@ The project is currently below `1.0.0`. Until `1.0.0` is released:
 
 1. Update the version in [package.json](C:/Users/marcusj/Documents/GitHub/rapvis/web/package.json).
 2. Add a release entry to [CHANGELOG.md](C:/Users/marcusj/Documents/GitHub/rapvis/CHANGELOG.md).
-3. Run `npm run lint` and `npm run build` in `web/`.
+3. Run `npm run lint`, `npm run test`, and `npm run build` in `web/`.
 4. Tag the release as `vX.Y.Z`.
 
 ## Source of Truth

@@ -51,5 +51,10 @@ export function savePreferences(preferences: StoredPreferences) {
     return;
   }
 
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences));
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(preferences));
+  } catch {
+    // Ignore quota and storage availability errors. The app remains usable
+    // even if preferences cannot be persisted on this device.
+  }
 }

@@ -523,7 +523,7 @@ export default function App() {
 
         <section className="table-panel">
           <div className="table-wrapper">
-            <table>
+            <table aria-label="Artikeljämförelse">
               <thead>
                 <tr>
                   <SortableHeader
@@ -582,6 +582,7 @@ export default function App() {
         <input
           ref={currentInputRef}
           accept=".csv,text/csv"
+          aria-label="Ladda förfrågan CSV"
           className="hidden-input"
           onChange={(event) => void handleUpload("current", event)}
           type="file"
@@ -589,6 +590,7 @@ export default function App() {
         <input
           ref={historyInputRef}
           accept=".csv,text/csv"
+          aria-label="Ladda historik CSV"
           className="hidden-input"
           onChange={(event) => void handleUpload("history", event)}
           type="file"
