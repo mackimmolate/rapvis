@@ -12,7 +12,6 @@ This project follows Semantic Versioning. See [VERSIONING.md](C:/Users/marcusj/D
 
 - Core automated tests for demand parsing, aggregation, and app smoke behavior
 - Security and dependency maintenance documentation
-- Dependabot configuration for npm and GitHub Actions updates
 - Progressive Web App implementation for Rapvis using React, TypeScript, and Vite
 - Client-side CSV parsing, aggregation, comparison, and persistence
 - GitHub Actions workflows for CI and GitHub Pages deployment

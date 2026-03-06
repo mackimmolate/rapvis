@@ -14,7 +14,7 @@ If you discover a security issue, please report it privately through the reposit
 
 ## Supported Security Practices
 
-- Dependencies should be kept current through normal maintenance and Dependabot updates.
+- Dependencies should be kept current through normal maintenance and periodic review.
 - Production CI should pass lint, tests, and build before release.
 - User data should remain local to the browser unless the project explicitly adopts a backend in the future.
 - Security-relevant dependency exceptions or accepted risks should be documented in pull requests or release notes.
