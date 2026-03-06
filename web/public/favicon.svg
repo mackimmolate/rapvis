@@ -1,14 +1,65 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
-    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+    <linearGradient id="bg" x1="0%" x2="100%" y1="0%" y2="100%">
       <stop offset="0%" stop-color="#10253f" />
-      <stop offset="100%" stop-color="#c96e3c" />
+      <stop offset="100%" stop-color="#1c5875" />
     </linearGradient>
+    <radialGradient id="glow" cx="26%" cy="18%" r="76%">
+      <stop offset="0%" stop-color="#4aa0b8" stop-opacity=".30" />
+      <stop offset="100%" stop-color="#4aa0b8" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="panel" x1="0%" x2="0%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#f7f1e8" />
+      <stop offset="100%" stop-color="#ece1d1" />
+    </linearGradient>
+    <linearGradient id="trend" x1="0%" x2="100%" y1="0%" y2="0%">
+      <stop offset="0%" stop-color="#d88a35" />
+      <stop offset="100%" stop-color="#e1ae53" />
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#081523" flood-opacity=".28" />
+    </filter>
   </defs>
+
   <rect width="512" height="512" rx="120" fill="url(#bg)" />
+  <rect width="512" height="512" rx="120" fill="url(#glow)" />
+
+  <g filter="url(#shadow)">
+    <rect x="88" y="96" width="336" height="280" rx="48" fill="url(#panel)" />
+  </g>
+
   <path
-    d="M132 360V152h116c36 0 63 8 81 24 18 17 27 39 27 67 0 21-6 40-18 55-13 15-30 25-52 31l88 91h-63l-79-84h-45v84h-55Zm55-130h54c20 0 35-4 45-12 10-9 15-21 15-38 0-15-5-26-15-34-10-9-25-13-45-13h-54v97Z"
-    fill="#f3efe6"
+    d="M142 316H370"
+    fill="none"
+    opacity=".78"
+    stroke="#d5c5b2"
+    stroke-linecap="round"
+    stroke-width="12"
   />
-  <path d="M352 138h34v178h-34z" fill="#f3efe6" opacity=".75" />
+  <path
+    d="M142 246H370"
+    fill="none"
+    opacity=".55"
+    stroke="#e7dbc9"
+    stroke-linecap="round"
+    stroke-width="8"
+  />
+
+  <rect x="144" y="248" width="44" height="68" rx="18" fill="#7da6cb" />
+  <rect x="212" y="214" width="44" height="102" rx="18" fill="#6796c0" />
+  <rect x="280" y="176" width="44" height="140" rx="18" fill="#4f82b3" />
+  <rect x="348" y="134" width="44" height="182" rx="18" fill="#315f8e" />
+
+  <path
+    d="M166 236L234 202L302 166L370 126"
+    fill="none"
+    stroke="url(#trend)"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="18"
+  />
+  <circle cx="166" cy="236" r="12" fill="#f7f1e8" stroke="#d88a35" stroke-width="8" />
+  <circle cx="234" cy="202" r="12" fill="#f7f1e8" stroke="#d88a35" stroke-width="8" />
+  <circle cx="302" cy="166" r="12" fill="#f7f1e8" stroke="#d88a35" stroke-width="8" />
+  <circle cx="370" cy="126" r="12" fill="#f7f1e8" stroke="#d88a35" stroke-width="8" />
 </svg>
