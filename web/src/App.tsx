@@ -188,7 +188,7 @@ export default function App() {
   useEffect(() => {
     const visibleArticles = new Set(tableRows.map((row) => row.articleId));
     setMarkedArticles((currentArticles) =>
-      currentArticles.filter((articleId) => visibleArticles.has(articleId)),
+      filterMarkedArticles(currentArticles, visibleArticles),
     );
   }, [tableRows]);
 
@@ -742,4 +742,22 @@ function filterRecordsBySelectedArticles(
     articleIds.map((articleId) => normalizeArticle(articleId)),
   );
   return records.filter((record) => normalizedArticles.has(record.articleNormalized));
+}
+
+function filterMarkedArticles(
+  currentArticles: string[],
+  visibleArticles: Set<string>,
+) {
+  const nextArticles = currentArticles.filter((articleId) =>
+    visibleArticles.has(articleId),
+  );
+
+  if (
+    nextArticles.length === currentArticles.length &&
+    nextArticles.every((articleId, index) => articleId === currentArticles[index])
+  ) {
+    return currentArticles;
+  }
+
+  return nextArticles;
 }
