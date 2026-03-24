@@ -71,6 +71,7 @@ export function PeriodChart({
             name="Nuvarande"
             stroke="#5b9bd5"
             strokeWidth={3}
+            isAnimationActive={false}
             dot={{ r: 4, strokeWidth: 2, fill: "#ffffff" }}
             activeDot={{ r: 6 }}
           >
@@ -88,6 +89,7 @@ export function PeriodChart({
             stroke="#70ad47"
             strokeWidth={3}
             strokeDasharray="8 5"
+            isAnimationActive={false}
             dot={{ r: 4, strokeWidth: 2, fill: "#ffffff" }}
             activeDot={{ r: 6 }}
           >

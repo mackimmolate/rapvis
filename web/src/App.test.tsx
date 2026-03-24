@@ -111,4 +111,32 @@ describe("App", () => {
     await screen.findByText("Förfrågan: current.csv | Historik: history.csv");
     expect(await screen.findByText("9X 000 000 001")).toBeTruthy();
   });
+
+  it("keeps the selected category when Visa alla resets an active period", async () => {
+    render(<App />);
+
+    await uploadDatasets();
+
+    const articleSelect = screen.getAllByRole("combobox")[0] as HTMLSelectElement;
+    await userEvent.selectOptions(articleSelect, "Audi AU38");
+
+    expect(await screen.findByText("8Y 185 3189 D")).toBeTruthy();
+    await waitFor(() => {
+      expect(screen.queryByText("5H0 867 439 B")).toBeNull();
+      expect(screen.queryByText("9X 000 000 001")).toBeNull();
+    });
+
+    const periodButtons = within(screen.getByTestId("period-chart")).getAllByRole("button");
+    await userEvent.click(periodButtons[0]);
+
+    await screen.findByText(/Tabellen visar vald period: 2026-W\d{2}/);
+
+    await userEvent.click(screen.getByRole("button", { name: "Visa alla" }));
+
+    await screen.findByText(/current\.csv \| Historik: history\.csv/);
+    expect(articleSelect.value).toBe("Audi AU38");
+    expect(await screen.findByText("8Y 185 3189 D")).toBeTruthy();
+    expect(screen.queryByText("5H0 867 439 B")).toBeNull();
+    expect(screen.queryByText("9X 000 000 001")).toBeNull();
+  });
 });

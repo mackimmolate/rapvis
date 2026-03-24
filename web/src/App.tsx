@@ -300,7 +300,6 @@ export default function App() {
   }
 
   function handleFilterReset() {
-    setArticleFilter("Alla");
     setActivePeriod(null);
     setMarkedArticles([]);
     setSelectedArticleFilter([]);
