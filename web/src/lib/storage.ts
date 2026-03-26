@@ -31,10 +31,8 @@ export function loadPreferences(): StoredPreferences {
         typeof parsed.showLabels === "boolean"
           ? parsed.showLabels
           : DEFAULT_PREFERENCES.showLabels,
-      articleFilter:
-        typeof parsed.articleFilter === "string"
-          ? parsed.articleFilter
-          : DEFAULT_PREFERENCES.articleFilter,
+      // Always start new sessions on "Alla" instead of restoring the last category.
+      articleFilter: DEFAULT_PREFERENCES.articleFilter,
       articleGroups: sanitizeArticleGroups(
         typeof parsed.articleGroups === "object" && parsed.articleGroups
           ? parsed.articleGroups

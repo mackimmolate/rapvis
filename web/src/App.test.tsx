@@ -61,6 +61,26 @@ async function uploadDatasets() {
 }
 
 describe("App", () => {
+  it("starts a fresh session with Alla even if a category was saved previously", () => {
+    window.localStorage.setItem(
+      "rapvis.preferences.v1",
+      JSON.stringify({
+        timeScale: "weeks",
+        showLabels: true,
+        articleFilter: "VW 380R",
+        articleGroups: {
+          "Audi AU38": ["8Y1853189D"],
+          "VW 380R": ["5H0867439B"],
+        },
+      }),
+    );
+
+    render(<App />);
+
+    const articleSelect = screen.getAllByRole("combobox")[0] as HTMLSelectElement;
+    expect(articleSelect.value).toBe("Alla");
+  });
+
   it("loads datasets and updates the active period from the chart", async () => {
     render(<App />);
 
