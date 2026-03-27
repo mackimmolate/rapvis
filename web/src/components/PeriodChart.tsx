@@ -14,6 +14,9 @@ import type { TooltipContentProps } from "recharts";
 
 import { formatDemand } from "../lib/demand";
 import type { PeriodPoint } from "../types";
+import { calculateValueLabelLayout } from "./periodChartLabels";
+
+const LABEL_BOX_HEIGHT = 20;
 
 interface PeriodChartProps {
   data: PeriodPoint[];
@@ -49,6 +52,7 @@ export function PeriodChart({
             minTickGap={16}
           />
           <YAxis
+            domain={[0, "auto"]}
             tickFormatter={formatDemand}
             tickLine={false}
             axisLine={false}
@@ -136,31 +140,15 @@ function ChartTooltip({
   );
 }
 
-function formatChartLabel(value: unknown) {
-  const numericValue = Number(value ?? 0);
-  return numericValue > 0 ? formatDemand(numericValue) : "";
-}
-
 function renderValueLabel(
-  props: {
-    value?: unknown;
-    x?: unknown;
-    y?: unknown;
-  },
+  props: Parameters<typeof calculateValueLabelLayout>[0],
   variant: "current" | "history",
 ) {
-  const label = formatChartLabel(props.value);
-  if (!label || typeof props.x !== "number" || typeof props.y !== "number") {
+  const layout = calculateValueLabelLayout(props, variant);
+  if (!layout) {
     return null;
   }
 
-  const textWidth = label.length * 7 + 14;
-  const boxHeight = 20;
-  const boxX = props.x - textWidth / 2;
-  const boxY =
-    variant === "current"
-      ? Math.max(4, props.y - 28)
-      : props.y + 10;
   const fill = variant === "current" ? "#e7d7b8" : "#e1edd0";
   const stroke = variant === "current" ? "#b69f78" : "#8fad67";
   const textColor = variant === "current" ? "#2f200d" : "#2b4d19";
@@ -169,25 +157,25 @@ function renderValueLabel(
     <g>
       <rect
         fill={fill}
-        height={boxHeight}
+        height={LABEL_BOX_HEIGHT}
         opacity={0.96}
         rx={5}
         ry={5}
         stroke={stroke}
         strokeWidth={1}
-        width={textWidth}
-        x={boxX}
-        y={boxY}
+        width={layout.textWidth}
+        x={layout.boxX}
+        y={layout.boxY}
       />
       <text
         dominantBaseline="middle"
         fill={textColor}
         fontSize={12}
         textAnchor="middle"
-        x={props.x}
-        y={boxY + boxHeight / 2}
+        x={layout.textX}
+        y={layout.textY}
       >
-        {label}
+        {layout.label}
       </text>
     </g>
   );

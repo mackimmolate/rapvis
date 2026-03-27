@@ -3,6 +3,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { PeriodChart } from "./PeriodChart";
+import { calculateValueLabelLayout } from "./periodChartLabels";
 
 vi.mock("recharts", async () => {
   return {
@@ -37,6 +38,66 @@ vi.mock("recharts", async () => {
 });
 
 describe("PeriodChart", () => {
+  it("splits close value bubbles apart when the two series nearly overlap", () => {
+    const parentViewBox = { x: 0, y: 0, width: 240, height: 240 };
+
+    const currentLayout = calculateValueLabelLayout(
+      {
+        value: 381,
+        x: 100,
+        y: 87.6,
+        payload: { current: 381, history: 414 },
+        parentViewBox,
+      },
+      "current",
+    );
+    const historyLayout = calculateValueLabelLayout(
+      {
+        value: 414,
+        x: 100,
+        y: 74.4,
+        payload: { current: 381, history: 414 },
+        parentViewBox,
+      },
+      "history",
+    );
+
+    expect(currentLayout?.textX).toBeLessThan(100);
+    expect(historyLayout?.textX).toBeGreaterThan(100);
+    expect(currentLayout?.boxY).toBeLessThan(87.6 - 28);
+    expect(historyLayout?.boxY).toBeGreaterThan(74.4 + 10);
+  });
+
+  it("keeps bubble positions centered when the values are already far apart", () => {
+    const parentViewBox = { x: 0, y: 0, width: 240, height: 240 };
+
+    const currentLayout = calculateValueLabelLayout(
+      {
+        value: 100,
+        x: 100,
+        y: 200,
+        payload: { current: 100, history: 400 },
+        parentViewBox,
+      },
+      "current",
+    );
+    const historyLayout = calculateValueLabelLayout(
+      {
+        value: 400,
+        x: 100,
+        y: 80,
+        payload: { current: 100, history: 400 },
+        parentViewBox,
+      },
+      "history",
+    );
+
+    expect(currentLayout?.textX).toBe(100);
+    expect(historyLayout?.textX).toBe(100);
+    expect(currentLayout?.boxY).toBe(200 - 28);
+    expect(historyLayout?.boxY).toBe(80 + 10);
+  });
+
   it("keeps line animations disabled so value bubbles stay visible on selection", () => {
     render(
       <PeriodChart
