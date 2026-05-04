@@ -2,8 +2,8 @@ import type { ReactNode } from "react";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import { PeriodChart, formatPeriodAxisTick } from "./PeriodChart";
-import { calculateValueLabelLayout } from "./periodChartLabels";
+import { PeriodChart } from "./PeriodChart";
+import { calculateValueLabelLayout, formatPeriodAxisTick } from "./periodChartLabels";
 
 vi.mock("recharts", async () => {
   return {

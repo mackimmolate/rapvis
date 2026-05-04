@@ -92,6 +92,13 @@ export function calculateValueLabelLayout(
   };
 }
 
+export function formatPeriodAxisTick(value: string | number) {
+  const label = String(value);
+  const weeklyMatch = /^(\d{4})-W(\d{2})$/.exec(label);
+
+  return weeklyMatch ? `W${weeklyMatch[2]}` : label;
+}
+
 function formatChartLabel(value: unknown) {
   const numericValue = Number(value ?? 0);
   return numericValue > 0 ? formatDemand(numericValue) : "";

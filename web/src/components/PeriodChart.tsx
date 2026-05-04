@@ -14,7 +14,7 @@ import type { TooltipContentProps } from "recharts";
 
 import { formatDemand } from "../lib/demand";
 import type { PeriodPoint } from "../types";
-import { calculateValueLabelLayout } from "./periodChartLabels";
+import { calculateValueLabelLayout, formatPeriodAxisTick } from "./periodChartLabels";
 
 const LABEL_BOX_HEIGHT = 20;
 
@@ -109,13 +109,6 @@ export function PeriodChart({
       </ResponsiveContainer>
     </div>
   );
-}
-
-export function formatPeriodAxisTick(value: string | number) {
-  const label = String(value);
-  const weeklyMatch = /^(\d{4})-W(\d{2})$/.exec(label);
-
-  return weeklyMatch ? `W${weeklyMatch[2]}` : label;
 }
 
 function ChartTooltip({
