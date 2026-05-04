@@ -26,7 +26,7 @@ interface ValueLabelProps {
   x?: unknown;
   y?: unknown;
   payload?: ValueLabelPayload | null;
-  parentViewBox?: Partial<ChartBounds>;
+  parentViewBox?: unknown;
 }
 
 interface ValueLabelLayout {
@@ -39,9 +39,10 @@ interface ValueLabelLayout {
 }
 
 export function calculateValueLabelLayout(
-  props: ValueLabelProps,
+  rawProps: unknown,
   variant: "current" | "history",
 ): ValueLabelLayout | null {
+  const props = readValueLabelProps(rawProps);
   const label = formatChartLabel(props.value);
   if (!label || typeof props.x !== "number" || typeof props.y !== "number") {
     return null;
@@ -141,9 +142,31 @@ function getCollisionOffset(
   };
 }
 
-function getChartBounds(parentViewBox?: Partial<ChartBounds>): ChartBounds | null {
+function readValueLabelProps(rawProps: unknown): ValueLabelProps {
+  if (!isRecord(rawProps)) {
+    return {};
+  }
+
+  const payload = isRecord(rawProps.payload)
+    ? {
+        current: rawProps.payload.current,
+        history: rawProps.payload.history,
+      }
+    : null;
+
+  return {
+    value: rawProps.value,
+    x: rawProps.x,
+    y: rawProps.y,
+    payload,
+    parentViewBox: rawProps.parentViewBox,
+  };
+}
+
+function getChartBounds(parentViewBox?: unknown): ChartBounds | null {
   if (
-    typeof parentViewBox?.x !== "number" ||
+    !isRecord(parentViewBox) ||
+    typeof parentViewBox.x !== "number" ||
     typeof parentViewBox.y !== "number" ||
     typeof parentViewBox.width !== "number" ||
     typeof parentViewBox.height !== "number"
@@ -161,4 +184,8 @@ function getChartBounds(parentViewBox?: Partial<ChartBounds>): ChartBounds | nul
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
 }

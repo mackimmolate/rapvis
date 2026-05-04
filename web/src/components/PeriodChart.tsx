@@ -141,12 +141,12 @@ function ChartTooltip({
 }
 
 function renderValueLabel(
-  props: Parameters<typeof calculateValueLabelLayout>[0],
+  props: unknown,
   variant: "current" | "history",
 ) {
   const layout = calculateValueLabelLayout(props, variant);
   if (!layout) {
-    return null;
+    return <g />;
   }
 
   const fill = variant === "current" ? "#e7d7b8" : "#e1edd0";
