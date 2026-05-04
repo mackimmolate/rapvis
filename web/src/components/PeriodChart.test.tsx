@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-import { PeriodChart } from "./PeriodChart";
+import { PeriodChart, formatPeriodAxisTick } from "./PeriodChart";
 import { calculateValueLabelLayout } from "./periodChartLabels";
 
 vi.mock("recharts", async () => {
@@ -38,6 +38,12 @@ vi.mock("recharts", async () => {
 });
 
 describe("PeriodChart", () => {
+  it("formats weekly X-axis labels without the year", () => {
+    expect(formatPeriodAxisTick("2026-W20")).toBe("W20");
+    expect(formatPeriodAxisTick("2026-05")).toBe("2026-05");
+    expect(formatPeriodAxisTick("2026")).toBe("2026");
+  });
+
   it("splits close value bubbles apart when the two series nearly overlap", () => {
     const parentViewBox = { x: 0, y: 0, width: 240, height: 240 };
 

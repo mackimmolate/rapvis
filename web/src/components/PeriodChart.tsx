@@ -46,10 +46,11 @@ export function PeriodChart({
           <CartesianGrid stroke="rgba(16, 37, 63, 0.12)" strokeDasharray="4 6" />
           <XAxis
             dataKey="label"
+            interval={0}
+            tickFormatter={formatPeriodAxisTick}
             tickLine={false}
             axisLine={false}
             tick={{ fill: "#41566f", fontSize: 12 }}
-            minTickGap={16}
           />
           <YAxis
             domain={[0, "auto"]}
@@ -108,6 +109,13 @@ export function PeriodChart({
       </ResponsiveContainer>
     </div>
   );
+}
+
+export function formatPeriodAxisTick(value: string | number) {
+  const label = String(value);
+  const weeklyMatch = /^(\d{4})-W(\d{2})$/.exec(label);
+
+  return weeklyMatch ? `W${weeklyMatch[2]}` : label;
 }
 
 function ChartTooltip({
